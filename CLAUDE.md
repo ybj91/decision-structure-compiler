@@ -14,19 +14,36 @@ Core formal model: `(State + Condition) → (Action, Next State)`
 
 ## Repository Status
 
-This is a greenfield project in the planning stage. ARCHITECTURE.md contains the full system design. No source code, build system, or tests exist yet.
+Fully implemented Python project. Install with `pip install -e ".[dev]"`. Run tests with `pytest`.
 
-## Architecture (from ARCHITECTURE.md)
+## Build & Test
 
-Six planned modules:
-1. **Scenario Manager** — scenario creation, metadata, lifecycle (`Draft → Exploration → Graph Extraction → Graph Optimization → Compiled → Production`)
-2. **Trace Collector** — storage for simulated, user-provided, and annotated execution traces
-3. **Graph Extractor** — LLM-based state transition extraction and condition formalization
-4. **Graph Optimizer** — state merging, unreachable node removal, graph minimization
-5. **Compiler** — converts graph to executable runtime format (JSON or DSL), versioned artifacts
-6. **Runtime Engine** — deterministic state execution, condition evaluation, action dispatch, optional LLM fallback
+```bash
+pip install -e ".[dev]"   # install with dev dependencies
+pytest                     # run all 125 tests
+dsc --help                 # CLI entrypoint
+```
 
-Key abstractions: **Project** (domain container) → **Scenario** (self-contained decision domain with state/observation/action schemas) → **Execution Trace** → **Decision Graph**
+## Architecture
+
+Package: `src/dsc/` — nine modules:
+
+1. **models/** — Pydantic data models (conditions AST, project, scenario, trace, graph)
+2. **storage/** — JSON filesystem persistence
+3. **scenario_manager/** — CRUD + lifecycle transitions (`Draft → Exploration → Graph Extraction → Graph Optimization → Compiled → Production`)
+4. **trace_collector/** — trace storage/validation + LLM simulation
+5. **graph_extractor/** — three-phase LLM extraction pipeline (raw extraction → state normalization → condition formalization)
+6. **graph_optimizer/** — networkx-based state merging, pruning, conflict detection
+7. **compiler/** — graph → versioned self-contained JSON artifact
+8. **runtime/** — deterministic condition evaluator + execution engine
+9. **llm/** — Anthropic Claude client wrapper + prompt templates
+10. **cli/** — Typer CLI
+
+Key abstractions: **Project** → **Scenario** → **ExecutionTrace** → **DecisionGraph** → **CompiledArtifact**
+
+### Condition Expression AST
+
+The core type system for deterministic evaluation: `FieldCondition` (leaf comparisons with dot-path field access), `ConditionGroup` (AND/OR/NOT compound), `AlwaysTrue` (wildcard). Discriminated union via Pydantic `type` field.
 
 ## Design Principles
 
