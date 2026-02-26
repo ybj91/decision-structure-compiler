@@ -154,7 +154,85 @@ Draft → Exploration → Graph Extraction → Graph Optimization → Compiled �
 
 ## Examples
 
-Three runnable examples in [`examples/`](examples/). No LLM API key needed.
+Four runnable examples in [`examples/`](examples/). No LLM API key needed.
+
+### Full Pipeline (start here)
+
+**This is the most important example.** It shows the complete DSC workflow: define a scenario, let the LLM simulate traces, extract a decision graph, optimize, compile, and run deterministically. No hand-written traces.
+
+```bash
+python examples/full_pipeline/demo.py
+```
+
+The scenario is a **tech support triage system** that handles password resets, billing disputes, and service outages.
+
+**What happens step by step:**
+
+**Step 1 -- Define the scenario.** You describe the domain, available actions (password reset, refund, escalate...), tools (auth service, billing API, status page), and constraints ("auto-refunds only under $100").
+
+**Step 2 -- LLM simulates traces.** Given 3 test inputs, the LLM reasons through each one and produces a full execution trace. This is where the LLM's intelligence gets captured:
+
+```
+  Trace 1: account (low) -> 2 steps
+    triage -> [initiate_password_reset] -> awaiting_confirmation
+      This is a standard account access issue. The customer forgot their
+      password. Route to account recovery flow.
+    awaiting_confirmation -> [close_ticket] -> resolved
+      Customer confirmed they received the reset link. Issue resolved.
+
+  Trace 2: billing (medium) -> 3 steps
+    triage -> [lookup_billing_history] -> billing_review
+      This is a billing dispute about a duplicate charge. Need to verify.
+    billing_review -> [process_refund] -> refund_issued
+      Duplicate charge confirmed. Amount is under $100 so auto-refund is
+      authorized without manager approval.
+    refund_issued -> [close_ticket] -> resolved
+
+  Trace 3: technical (critical) -> 3 steps
+    triage -> [check_system_status] -> incident_detected
+      Critical severity reporting a full service outage. Must check status.
+    incident_detected -> [notify_known_incident] -> monitoring
+      Known active incident. Notify customer about the ETA.
+    monitoring -> [close_ticket] -> resolved
+```
+
+**Step 3 -- LLM extracts the decision graph.** Three-phase pipeline:
+- **Phase A:** Extract raw transitions from each trace
+- **Phase B:** Normalize states across all traces (deduplicate synonyms)
+- **Phase C:** Formalize natural language conditions into structured expressions
+
+The LLM turns reasoning like *"amount is under $100 so auto-refund is authorized"* into:
+
+```
+billing_review --[(duplicate_confirmed eq True AND refund_amount lte 100)]--> process_refund
+billing_review --[(duplicate_confirmed eq True AND refund_amount gt 100)]--> escalate_to_human
+```
+
+**Steps 4-5 -- Optimize and compile.** Prune unreachable states, merge duplicates, detect conflicts, produce a self-contained JSON artifact.
+
+**Step 6 -- Run deterministically.** The compiled graph executes with zero LLM calls:
+
+```
+  BILLING REFUND -- duplicate charge under $100
+    [triage] + {issue_type=billing, severity=medium}
+      -> lookup_billing_history -> [billing_review]
+    [billing_review] + {duplicate_confirmed=True, refund_amount=29.99}
+      -> process_refund -> [refund_issued]
+    [refund_issued] + {customer_satisfied=True}
+      -> close_ticket -> [resolved]
+    Result: RESOLVED in 3 steps
+
+  BILLING ESCALATION -- duplicate charge over $100
+    [triage] + {issue_type=billing, severity=medium}
+      -> lookup_billing_history -> [billing_review]
+    [billing_review] + {duplicate_confirmed=True, refund_amount=250.0}
+      -> escalate_to_human -> [resolved]
+    Result: RESOLVED in 2 steps
+```
+
+**The result:** 8 LLM calls at compile time produced a 7-state, 15-transition graph that handles 5 different runtime scenarios deterministically. The LLM reasoned once; the state machine runs forever.
+
+> This demo mocks the LLM responses so you can run it without an API key. In production, replace the mock with `LLMClient()` and Claude generates everything automatically.
 
 ### Customer Support Routing
 
