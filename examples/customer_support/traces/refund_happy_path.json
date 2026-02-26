@@ -1,0 +1,57 @@
+{
+  "id": "trace-refund-happy",
+  "scenario_id": "customer-support",
+  "source": "user",
+  "initial_state": "greeting",
+  "steps": [
+    {
+      "state": "greeting",
+      "observation": {
+        "intent": "refund",
+        "customer_tier": "standard",
+        "message": "I want to return my order"
+      },
+      "decision": "Customer explicitly requests a refund. Route to refund evaluation.",
+      "action": "acknowledge_refund_request",
+      "action_params": {},
+      "tool_result": null,
+      "next_state": "refund_evaluation"
+    },
+    {
+      "state": "refund_evaluation",
+      "observation": {
+        "order_age_days": 12,
+        "order_amount": 89.99,
+        "item_condition": "unopened"
+      },
+      "decision": "Order is within 30-day window and item is unopened. Eligible for full refund.",
+      "action": "approve_refund",
+      "action_params": {
+        "refund_amount": 89.99,
+        "refund_method": "original_payment"
+      },
+      "tool_result": {
+        "refund_id": "ref-20240115-001",
+        "status": "processed"
+      },
+      "next_state": "refund_approved"
+    },
+    {
+      "state": "refund_approved",
+      "observation": {
+        "refund_confirmed": true
+      },
+      "decision": "Refund processed successfully. Send confirmation and close.",
+      "action": "send_confirmation",
+      "action_params": {
+        "template": "refund_success"
+      },
+      "tool_result": null,
+      "next_state": "resolved"
+    }
+  ],
+  "metadata": {
+    "test_case": "happy_path_refund",
+    "description": "Standard refund for recent, unopened order"
+  }
+}

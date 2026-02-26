@@ -1,0 +1,58 @@
+{
+  "id": "trace-vip-refund",
+  "scenario_id": "customer-support",
+  "source": "user",
+  "initial_state": "greeting",
+  "steps": [
+    {
+      "state": "greeting",
+      "observation": {
+        "intent": "refund",
+        "customer_tier": "premium",
+        "message": "I'd like to return this, it's been a while though"
+      },
+      "decision": "Premium customer requesting refund. Route to refund evaluation with VIP consideration.",
+      "action": "acknowledge_refund_request",
+      "action_params": {},
+      "tool_result": null,
+      "next_state": "refund_evaluation"
+    },
+    {
+      "state": "refund_evaluation",
+      "observation": {
+        "order_age_days": 55,
+        "order_amount": 320.00,
+        "item_condition": "used"
+      },
+      "decision": "Order is outside standard window, but customer is premium tier. Approve as courtesy.",
+      "action": "approve_refund",
+      "action_params": {
+        "refund_amount": 320.00,
+        "refund_method": "store_credit",
+        "reason": "vip_courtesy"
+      },
+      "tool_result": {
+        "refund_id": "ref-20240116-vip",
+        "status": "processed"
+      },
+      "next_state": "refund_approved"
+    },
+    {
+      "state": "refund_approved",
+      "observation": {
+        "refund_confirmed": true
+      },
+      "decision": "Refund processed. Send VIP confirmation.",
+      "action": "send_confirmation",
+      "action_params": {
+        "template": "refund_success_vip"
+      },
+      "tool_result": null,
+      "next_state": "resolved"
+    }
+  ],
+  "metadata": {
+    "test_case": "vip_courtesy_refund",
+    "description": "Premium customer gets courtesy refund outside normal window"
+  }
+}

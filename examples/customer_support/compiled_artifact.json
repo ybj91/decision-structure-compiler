@@ -1,0 +1,278 @@
+{
+  "format": "dsc-compiled-v1",
+  "version": 1,
+  "scenario_id": "customer-support",
+  "scenario_name": "Customer Support Routing",
+  "compiled_at": "2025-02-26T12:00:00+00:00",
+  "graph": {
+    "initial_state": "greeting",
+    "terminal_states": ["resolved", "escalated"],
+    "states": {
+      "greeting": {
+        "name": "greeting",
+        "description": "Initial state — identify customer intent and route accordingly",
+        "metadata": {}
+      },
+      "refund_evaluation": {
+        "name": "refund_evaluation",
+        "description": "Evaluate refund eligibility based on order age, amount, and customer tier",
+        "metadata": {}
+      },
+      "refund_approved": {
+        "name": "refund_approved",
+        "description": "Refund has been approved and processed",
+        "metadata": {}
+      },
+      "refund_denied": {
+        "name": "refund_denied",
+        "description": "Refund was denied — offer alternatives or escalate",
+        "metadata": {}
+      },
+      "inquiry_answered": {
+        "name": "inquiry_answered",
+        "description": "General inquiry has been answered",
+        "metadata": {}
+      },
+      "resolved": {
+        "name": "resolved",
+        "description": "Conversation completed successfully",
+        "metadata": {}
+      },
+      "escalated": {
+        "name": "escalated",
+        "description": "Issue escalated to human supervisor",
+        "metadata": {}
+      }
+    },
+    "transitions": [
+      {
+        "from_state": "greeting",
+        "condition": {
+          "type": "field",
+          "field": "intent",
+          "operator": "eq",
+          "value": "refund"
+        },
+        "action": "acknowledge_refund_request",
+        "action_params": {},
+        "to_state": "refund_evaluation",
+        "priority": 0
+      },
+      {
+        "from_state": "greeting",
+        "condition": {
+          "type": "field",
+          "field": "intent",
+          "operator": "eq",
+          "value": "question"
+        },
+        "action": "handle_inquiry",
+        "action_params": {"topic": "general"},
+        "to_state": "inquiry_answered",
+        "priority": 1
+      },
+      {
+        "from_state": "greeting",
+        "condition": {
+          "type": "field",
+          "field": "intent",
+          "operator": "eq",
+          "value": "complaint"
+        },
+        "action": "escalate_to_supervisor",
+        "action_params": {},
+        "to_state": "escalated",
+        "priority": 2
+      },
+      {
+        "from_state": "greeting",
+        "condition": {
+          "type": "always_true"
+        },
+        "action": "handle_inquiry",
+        "action_params": {"topic": "unknown"},
+        "to_state": "inquiry_answered",
+        "priority": 100
+      },
+      {
+        "from_state": "refund_evaluation",
+        "condition": {
+          "type": "group",
+          "logic": "and",
+          "conditions": [
+            {"type": "field", "field": "order_age_days", "operator": "lte", "value": 30},
+            {"type": "field", "field": "item_condition", "operator": "in", "value": ["unopened", "defective"]}
+          ]
+        },
+        "action": "approve_refund",
+        "action_params": {"refund_method": "original_payment"},
+        "to_state": "refund_approved",
+        "priority": 0
+      },
+      {
+        "from_state": "refund_evaluation",
+        "condition": {
+          "type": "group",
+          "logic": "and",
+          "conditions": [
+            {"type": "field", "field": "customer_tier", "operator": "eq", "value": "premium"},
+            {"type": "field", "field": "order_amount", "operator": "lte", "value": 500}
+          ]
+        },
+        "action": "approve_refund",
+        "action_params": {"refund_method": "store_credit", "reason": "vip_courtesy"},
+        "to_state": "refund_approved",
+        "priority": 1
+      },
+      {
+        "from_state": "refund_evaluation",
+        "condition": {
+          "type": "always_true"
+        },
+        "action": "deny_refund",
+        "action_params": {"reason": "policy_violation"},
+        "to_state": "refund_denied",
+        "priority": 100
+      },
+      {
+        "from_state": "refund_approved",
+        "condition": {
+          "type": "always_true"
+        },
+        "action": "send_confirmation",
+        "action_params": {"template": "refund_success"},
+        "to_state": "resolved",
+        "priority": 0
+      },
+      {
+        "from_state": "refund_denied",
+        "condition": {
+          "type": "field",
+          "field": "customer_satisfied",
+          "operator": "eq",
+          "value": false
+        },
+        "action": "offer_escalation",
+        "action_params": {},
+        "to_state": "escalated",
+        "priority": 0
+      },
+      {
+        "from_state": "refund_denied",
+        "condition": {
+          "type": "always_true"
+        },
+        "action": "close_conversation",
+        "action_params": {},
+        "to_state": "resolved",
+        "priority": 100
+      },
+      {
+        "from_state": "inquiry_answered",
+        "condition": {
+          "type": "field",
+          "field": "customer_satisfied",
+          "operator": "eq",
+          "value": true
+        },
+        "action": "close_conversation",
+        "action_params": {},
+        "to_state": "resolved",
+        "priority": 0
+      },
+      {
+        "from_state": "inquiry_answered",
+        "condition": {
+          "type": "always_true"
+        },
+        "action": "escalate_to_supervisor",
+        "action_params": {},
+        "to_state": "escalated",
+        "priority": 100
+      }
+    ]
+  },
+  "actions": {
+    "acknowledge_refund_request": {
+      "name": "acknowledge_refund_request",
+      "description": "Acknowledge the customer's refund request and begin evaluation",
+      "tool": null,
+      "parameters_schema": {}
+    },
+    "handle_inquiry": {
+      "name": "handle_inquiry",
+      "description": "Answer a general customer question",
+      "tool": "knowledge_base",
+      "parameters_schema": {"topic": "string"}
+    },
+    "approve_refund": {
+      "name": "approve_refund",
+      "description": "Approve and process the refund",
+      "tool": "payment_processor",
+      "parameters_schema": {"refund_method": "string"}
+    },
+    "deny_refund": {
+      "name": "deny_refund",
+      "description": "Deny the refund with a reason",
+      "tool": null,
+      "parameters_schema": {"reason": "string"}
+    },
+    "send_confirmation": {
+      "name": "send_confirmation",
+      "description": "Send a confirmation message to the customer",
+      "tool": "email_service",
+      "parameters_schema": {"template": "string"}
+    },
+    "close_conversation": {
+      "name": "close_conversation",
+      "description": "Close the support conversation",
+      "tool": null,
+      "parameters_schema": {}
+    },
+    "offer_escalation": {
+      "name": "offer_escalation",
+      "description": "Offer to escalate to a human supervisor",
+      "tool": null,
+      "parameters_schema": {}
+    },
+    "escalate_to_supervisor": {
+      "name": "escalate_to_supervisor",
+      "description": "Transfer to a human supervisor",
+      "tool": "ticket_system",
+      "parameters_schema": {}
+    }
+  },
+  "tools": {
+    "knowledge_base": {
+      "name": "knowledge_base",
+      "description": "Search the knowledge base for answers",
+      "parameters_schema": {"query": "string"},
+      "returns_schema": {"answer": "string"}
+    },
+    "payment_processor": {
+      "name": "payment_processor",
+      "description": "Process refund payments",
+      "parameters_schema": {"amount": "number", "method": "string"},
+      "returns_schema": {"refund_id": "string", "status": "string"}
+    },
+    "email_service": {
+      "name": "email_service",
+      "description": "Send emails to customers",
+      "parameters_schema": {"template": "string", "recipient": "string"},
+      "returns_schema": {"sent": "boolean"}
+    },
+    "ticket_system": {
+      "name": "ticket_system",
+      "description": "Create support tickets for escalation",
+      "parameters_schema": {"priority": "string"},
+      "returns_schema": {"ticket_id": "string"}
+    }
+  },
+  "metadata": {
+    "graph_version": 2,
+    "graph_id": "graph-cs-001",
+    "state_count": 7,
+    "transition_count": 12,
+    "source_traces": ["trace-refund-happy", "trace-refund-denied", "trace-general-inquiry", "trace-vip-refund"]
+  }
+}

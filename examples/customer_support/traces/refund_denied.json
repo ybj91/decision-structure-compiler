@@ -1,0 +1,51 @@
+{
+  "id": "trace-refund-denied",
+  "scenario_id": "customer-support",
+  "source": "user",
+  "initial_state": "greeting",
+  "steps": [
+    {
+      "state": "greeting",
+      "observation": {
+        "intent": "refund",
+        "customer_tier": "standard",
+        "message": "I need my money back for order #5678"
+      },
+      "decision": "Customer wants a refund. Route to refund evaluation.",
+      "action": "acknowledge_refund_request",
+      "action_params": {},
+      "tool_result": null,
+      "next_state": "refund_evaluation"
+    },
+    {
+      "state": "refund_evaluation",
+      "observation": {
+        "order_age_days": 45,
+        "order_amount": 249.00,
+        "item_condition": "used"
+      },
+      "decision": "Order is outside the 30-day return window and item is used. Deny refund.",
+      "action": "deny_refund",
+      "action_params": {
+        "reason": "outside_return_window"
+      },
+      "tool_result": null,
+      "next_state": "refund_denied"
+    },
+    {
+      "state": "refund_denied",
+      "observation": {
+        "customer_satisfied": false
+      },
+      "decision": "Customer is unsatisfied with denial. Offer escalation to supervisor.",
+      "action": "offer_escalation",
+      "action_params": {},
+      "tool_result": null,
+      "next_state": "escalated"
+    }
+  ],
+  "metadata": {
+    "test_case": "refund_denied_old_order",
+    "description": "Refund denied due to expired return window, escalated"
+  }
+}

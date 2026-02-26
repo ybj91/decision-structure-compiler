@@ -152,7 +152,10 @@ class GraphOptimizer:
 
         Two states are equivalent if they have the same set of
         (condition, action, to_state) on their outgoing transitions.
+        Terminal states are never merged — they represent distinct outcomes.
         """
+        terminal_set = set(terminal_states)
+
         # Build outgoing signature per state
         outgoing: dict[str, list[str]] = {s: [] for s in states}
         for t in transitions:
@@ -163,6 +166,8 @@ class GraphOptimizer:
         # Normalize signatures
         sig_to_states: dict[str, list[str]] = {}
         for state, sigs in outgoing.items():
+            if state in terminal_set:
+                continue  # never merge terminal states
             key = "||".join(sorted(sigs))
             sig_to_states.setdefault(key, []).append(state)
 

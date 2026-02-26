@@ -1,0 +1,202 @@
+{
+  "format": "dsc-compiled-v1",
+  "version": 1,
+  "scenario_id": "content-moderation",
+  "scenario_name": "Content Moderation Pipeline",
+  "compiled_at": "2025-02-26T12:00:00+00:00",
+  "graph": {
+    "initial_state": "intake",
+    "terminal_states": ["published", "rejected", "held_for_review"],
+    "states": {
+      "intake": {
+        "name": "intake",
+        "description": "New content submitted — classify and route",
+        "metadata": {}
+      },
+      "toxicity_check": {
+        "name": "toxicity_check",
+        "description": "Evaluate content for toxic or harmful language",
+        "metadata": {}
+      },
+      "policy_check": {
+        "name": "policy_check",
+        "description": "Check content against community guidelines",
+        "metadata": {}
+      },
+      "spam_check": {
+        "name": "spam_check",
+        "description": "Check for spam or promotional content",
+        "metadata": {}
+      },
+      "published": {
+        "name": "published",
+        "description": "Content approved and published",
+        "metadata": {}
+      },
+      "rejected": {
+        "name": "rejected",
+        "description": "Content rejected with reason",
+        "metadata": {}
+      },
+      "held_for_review": {
+        "name": "held_for_review",
+        "description": "Content flagged for manual human review",
+        "metadata": {}
+      }
+    },
+    "transitions": [
+      {
+        "from_state": "intake",
+        "condition": {
+          "type": "field",
+          "field": "content_type",
+          "operator": "eq",
+          "value": "text"
+        },
+        "action": "run_toxicity_scan",
+        "action_params": {},
+        "to_state": "toxicity_check",
+        "priority": 0
+      },
+      {
+        "from_state": "intake",
+        "condition": {
+          "type": "field",
+          "field": "content_type",
+          "operator": "in",
+          "value": ["image", "video"]
+        },
+        "action": "flag_for_manual_review",
+        "action_params": {"reason": "media_content"},
+        "to_state": "held_for_review",
+        "priority": 1
+      },
+      {
+        "from_state": "intake",
+        "condition": {
+          "type": "always_true"
+        },
+        "action": "flag_for_manual_review",
+        "action_params": {"reason": "unknown_content_type"},
+        "to_state": "held_for_review",
+        "priority": 100
+      },
+      {
+        "from_state": "toxicity_check",
+        "condition": {
+          "type": "field",
+          "field": "toxicity_score",
+          "operator": "gt",
+          "value": 0.8
+        },
+        "action": "reject_content",
+        "action_params": {"reason": "high_toxicity"},
+        "to_state": "rejected",
+        "priority": 0
+      },
+      {
+        "from_state": "toxicity_check",
+        "condition": {
+          "type": "field",
+          "field": "toxicity_score",
+          "operator": "gt",
+          "value": 0.5
+        },
+        "action": "flag_for_manual_review",
+        "action_params": {"reason": "moderate_toxicity"},
+        "to_state": "held_for_review",
+        "priority": 1
+      },
+      {
+        "from_state": "toxicity_check",
+        "condition": {
+          "type": "field",
+          "field": "toxicity_score",
+          "operator": "lte",
+          "value": 0.5
+        },
+        "action": "proceed_to_policy_check",
+        "action_params": {},
+        "to_state": "policy_check",
+        "priority": 2
+      },
+      {
+        "from_state": "policy_check",
+        "condition": {
+          "type": "field",
+          "field": "policy_violations",
+          "operator": "gt",
+          "value": 0
+        },
+        "action": "reject_content",
+        "action_params": {"reason": "policy_violation"},
+        "to_state": "rejected",
+        "priority": 0
+      },
+      {
+        "from_state": "policy_check",
+        "condition": {
+          "type": "always_true"
+        },
+        "action": "proceed_to_spam_check",
+        "action_params": {},
+        "to_state": "spam_check",
+        "priority": 100
+      },
+      {
+        "from_state": "spam_check",
+        "condition": {
+          "type": "field",
+          "field": "spam_score",
+          "operator": "gt",
+          "value": 0.7
+        },
+        "action": "reject_content",
+        "action_params": {"reason": "spam_detected"},
+        "to_state": "rejected",
+        "priority": 0
+      },
+      {
+        "from_state": "spam_check",
+        "condition": {
+          "type": "group",
+          "logic": "and",
+          "conditions": [
+            {"type": "field", "field": "spam_score", "operator": "lte", "value": 0.7},
+            {"type": "field", "field": "author_reputation", "operator": "gte", "value": 50}
+          ]
+        },
+        "action": "publish_content",
+        "action_params": {},
+        "to_state": "published",
+        "priority": 1
+      },
+      {
+        "from_state": "spam_check",
+        "condition": {
+          "type": "always_true"
+        },
+        "action": "flag_for_manual_review",
+        "action_params": {"reason": "low_reputation_author"},
+        "to_state": "held_for_review",
+        "priority": 100
+      }
+    ]
+  },
+  "actions": {
+    "run_toxicity_scan": {"name": "run_toxicity_scan", "description": "Scan content for toxic language", "tool": "toxicity_classifier", "parameters_schema": {}},
+    "proceed_to_policy_check": {"name": "proceed_to_policy_check", "description": "Move content to policy review", "tool": null, "parameters_schema": {}},
+    "proceed_to_spam_check": {"name": "proceed_to_spam_check", "description": "Move content to spam check", "tool": null, "parameters_schema": {}},
+    "publish_content": {"name": "publish_content", "description": "Approve and publish the content", "tool": "content_api", "parameters_schema": {}},
+    "reject_content": {"name": "reject_content", "description": "Reject content with notification", "tool": "notification_service", "parameters_schema": {"reason": "string"}},
+    "flag_for_manual_review": {"name": "flag_for_manual_review", "description": "Send content to human review queue", "tool": "review_queue", "parameters_schema": {"reason": "string"}}
+  },
+  "tools": {},
+  "metadata": {
+    "graph_version": 1,
+    "graph_id": "graph-cm-001",
+    "state_count": 7,
+    "transition_count": 11,
+    "source_traces": []
+  }
+}

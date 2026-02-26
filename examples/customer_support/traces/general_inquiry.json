@@ -1,0 +1,41 @@
+{
+  "id": "trace-general-inquiry",
+  "scenario_id": "customer-support",
+  "source": "user",
+  "initial_state": "greeting",
+  "steps": [
+    {
+      "state": "greeting",
+      "observation": {
+        "intent": "question",
+        "customer_tier": "premium",
+        "message": "When will my order arrive?"
+      },
+      "decision": "Customer has a general question, not a refund. Route to inquiry handling.",
+      "action": "handle_inquiry",
+      "action_params": {
+        "topic": "order_status"
+      },
+      "tool_result": {
+        "order_status": "shipped",
+        "estimated_delivery": "2024-01-20"
+      },
+      "next_state": "inquiry_answered"
+    },
+    {
+      "state": "inquiry_answered",
+      "observation": {
+        "customer_satisfied": true
+      },
+      "decision": "Customer is satisfied with the answer. Close the conversation.",
+      "action": "close_conversation",
+      "action_params": {},
+      "tool_result": null,
+      "next_state": "resolved"
+    }
+  ],
+  "metadata": {
+    "test_case": "general_inquiry",
+    "description": "Premium customer asks about order delivery"
+  }
+}
