@@ -4,17 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Decision Structure Compiler** — transforms LLM-driven execution traces into deterministic, executable decision graphs (state machines / decision networks). The LLM is used only during compilation, never at runtime.
+**Decision Structure Compiler (DSC)** -- transforms LLM-driven execution traces into deterministic, executable decision graphs. The LLM is used only during compilation, never at runtime.
 
 Two-phase architecture:
-1. **Exploration & Compilation**: LLM simulates task execution, generates traces, extracts state transitions, produces a Decision Graph
-2. **Runtime Execution**: compiled graph executes deterministically with no LLM calls (optional fallback for low-confidence paths)
+1. **Compile time**: LLM simulates traces, extracts state transitions, normalizes states, formalizes conditions into structured AST
+2. **Runtime**: compiled graph executes deterministically with zero LLM calls
 
-Core formal model: `(State + Condition) → (Action, Next State)`
-
-## Repository Status
-
-Fully implemented Python project. Install with `pip install -e ".[dev]"`. Run tests with `pytest`.
+Core formal model: `(State + Condition) -> (Action, Next State)`
 
 ## Build & Test
 
@@ -24,26 +20,89 @@ pytest                     # run all 125 tests
 dsc --help                 # CLI entrypoint
 ```
 
-## Architecture
+## Project Structure
 
-Package: `src/dsc/` — nine modules:
+```
+src/dsc/
+  models/               # Pydantic data models
+    conditions.py       # Condition AST: FieldCondition, ConditionGroup, AlwaysTrue
+    project.py          # Project model
+    scenario.py         # Scenario + ScenarioStatus lifecycle enum + VALID_TRANSITIONS
+    trace.py            # ExecutionTrace, TraceStep, TraceSource
+    graph.py            # DecisionGraph, Transition, StateDefinition
+  storage/
+    filesystem.py       # JSON file persistence (all CRUD for projects/scenarios/traces/graphs/compiled)
+  scenario_manager/
+    manager.py          # ScenarioManager: CRUD + lifecycle transition validation
+  trace_collector/
+    collector.py        # TraceCollector: validation (chain consistency) + storage
+    simulator.py        # TraceSimulator: LLM-based trace generation
+  graph_extractor/
+    extractor.py        # GraphExtractor: 3-phase pipeline (extract -> normalize -> formalize)
+  graph_optimizer/
+    optimizer.py        # GraphOptimizer: unreachable pruning, dedup, equivalent state merge, conflict detection
+  compiler/
+    compiler.py         # Compiler: graph -> versioned self-contained JSON artifact (CompiledArtifact)
+  runtime/
+    evaluator.py        # evaluate(): pure condition evaluation (hot path, no side effects)
+    engine.py           # RuntimeEngine: step-by-step execution, priority-based transition matching
+  llm/
+    client.py           # LLMClient: Anthropic SDK wrapper with structured_request() via tool_use
+    prompts.py          # All prompt templates + JSON schemas for LLM interactions
+  cli/
+    main.py             # Typer CLI: init, scenario, trace, extract, optimize, compile, run
 
-1. **models/** — Pydantic data models (conditions AST, project, scenario, trace, graph)
-2. **storage/** — JSON filesystem persistence
-3. **scenario_manager/** — CRUD + lifecycle transitions (`Draft → Exploration → Graph Extraction → Graph Optimization → Compiled → Production`)
-4. **trace_collector/** — trace storage/validation + LLM simulation
-5. **graph_extractor/** — three-phase LLM extraction pipeline (raw extraction → state normalization → condition formalization)
-6. **graph_optimizer/** — networkx-based state merging, pruning, conflict detection
-7. **compiler/** — graph → versioned self-contained JSON artifact
-8. **runtime/** — deterministic condition evaluator + execution engine
-9. **llm/** — Anthropic Claude client wrapper + prompt templates
-10. **cli/** — Typer CLI
+tests/
+  conftest.py           # Shared fixtures (tmp_data_dir, storage)
+  test_models.py        # Model serialization roundtrip + storage CRUD
+  test_evaluator.py     # Condition evaluator: all operators, nesting, edge cases
+  test_scenario_manager.py  # CRUD + full lifecycle transitions
+  test_trace_collector.py   # Trace validation + storage
+  test_graph_extractor.py   # Extraction with mocked LLM responses
+  test_graph_optimizer.py   # Pruning, merging, conflict detection
+  test_compiler.py      # Artifact generation + versioning
+  test_runtime.py       # Engine execution with pre-built artifacts
 
-Key abstractions: **Project** → **Scenario** → **ExecutionTrace** → **DecisionGraph** → **CompiledArtifact**
+examples/
+  full_pipeline/        # Complete workflow: scenario -> LLM simulation -> extraction -> runtime
+  customer_support/     # Pre-built artifact + 4 hand-written traces
+  content_moderation/   # Multi-stage filtering pipeline
+  programmatic_api/     # Build everything from Python code, no CLI/LLM
+```
 
-### Condition Expression AST
+## Key Architecture Decisions
 
-The core type system for deterministic evaluation: `FieldCondition` (leaf comparisons with dot-path field access), `ConditionGroup` (AND/OR/NOT compound), `AlwaysTrue` (wildcard). Discriminated union via Pydantic `type` field.
+### Condition Expression AST (`models/conditions.py`)
+Discriminated union via Pydantic `type` field:
+- `FieldCondition`: leaf comparison with dot-path field access, 10 operators (eq/ne/gt/lt/gte/lte/in/not_in/contains/matches)
+- `ConditionGroup`: AND/OR/NOT compound, nests arbitrarily
+- `AlwaysTrue`: wildcard/default fallback
+
+### Graph Extraction (`graph_extractor/extractor.py`)
+Three-phase LLM pipeline:
+- **Phase A**: per-trace raw transition extraction (tool: `extract_transitions`)
+- **Phase B**: cross-trace state normalization/dedup (tool: `normalize_states`)
+- **Phase C**: condition formalization into AST (tool: `formalize_conditions`)
+
+### Runtime Evaluation (`runtime/evaluator.py`)
+Pure function `evaluate(condition, observation) -> bool`. Handles nested field paths via `resolve_field()`, type mismatches return False, missing fields return False.
+
+### Scenario Lifecycle (`models/scenario.py`)
+`Draft -> Exploration -> Graph Extraction -> Graph Optimization -> Compiled -> Production` with loop back from Production to Exploration. Preconditions enforced in `ScenarioManager.transition()`.
+
+### Storage Layout
+```
+{data_dir}/projects/{project_id}/
+  project.json
+  scenarios/{scenario_id}/
+    scenario.json
+    traces/{trace_id}.json
+    graphs/v{version}.json
+    compiled/v{version}.json
+```
+
+### LLM Client (`llm/client.py`)
+Uses Anthropic `tool_use` with `tool_choice={"type": "tool", "name": ...}` to force structured JSON output. All prompt templates in `llm/prompts.py`.
 
 ## Design Principles
 
