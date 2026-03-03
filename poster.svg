@@ -1,0 +1,180 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <pattern id="smallGrid" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#1a2d4d" stroke-width="0.5" opacity="0.6"/>
+    </pattern>
+    <pattern id="largeGrid" width="150" height="150" patternUnits="userSpaceOnUse">
+      <rect width="150" height="150" fill="url(#smallGrid)"/>
+      <path d="M 150 0 L 0 0 0 150" fill="none" stroke="#1e3a5f" stroke-width="1" opacity="0.8"/>
+    </pattern>
+
+    <filter id="glowCyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="glowAmber" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="glowGreen" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="textGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#0a1628" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#050d18" stop-opacity="0.7"/>
+    </radialGradient>
+
+    <marker id="arrowCyan" markerWidth="14" markerHeight="10" refX="12" refY="5" orient="auto">
+      <path d="M0,0 L14,5 L0,10 L3,5 Z" fill="#00d4ff"/>
+    </marker>
+  </defs>
+
+  <!-- ==================== BACKGROUND ==================== -->
+  <rect width="1920" height="1080" fill="#0a1628"/>
+  <rect width="1920" height="1080" fill="url(#largeGrid)"/>
+  <rect width="1920" height="1080" fill="url(#vignette)"/>
+
+  <!-- Blueprint corner marks -->
+  <g stroke="#1e3a5f" stroke-width="1.5" opacity="0.5">
+    <line x1="40" y1="30" x2="40" y2="60"/><line x1="30" y1="40" x2="60" y2="40"/>
+    <line x1="1880" y1="30" x2="1880" y2="60"/><line x1="1860" y1="40" x2="1890" y2="40"/>
+    <line x1="40" y1="1020" x2="40" y2="1050"/><line x1="30" y1="1040" x2="60" y2="1040"/>
+    <line x1="1880" y1="1020" x2="1880" y2="1050"/><line x1="1860" y1="1040" x2="1890" y2="1040"/>
+  </g>
+  <rect x="25" y="25" width="1870" height="1030" fill="none" stroke="#1e3a5f" stroke-width="1" rx="2" opacity="0.6"/>
+  <rect x="35" y="35" width="1850" height="1010" fill="none" stroke="#1e3a5f" stroke-width="0.5" rx="2" opacity="0.3"/>
+
+  <!-- ==================== TITLE ==================== -->
+  <text x="960" y="130" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" font-size="72" fill="#ffffff" letter-spacing="4" filter="url(#textGlow)">DECISION STRUCTURE</text>
+  <text x="960" y="200" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" font-size="72" fill="#ffffff" letter-spacing="4" filter="url(#textGlow)">COMPILER</text>
+
+  <!-- Divider -->
+  <line x1="660" y1="235" x2="1260" y2="235" stroke="#00d4ff" stroke-width="1.5" opacity="0.4"/>
+  <circle cx="660" cy="235" r="3" fill="#00d4ff" opacity="0.5"/>
+  <circle cx="1260" cy="235" r="3" fill="#00d4ff" opacity="0.5"/>
+
+  <!-- Tagline -->
+  <text x="960" y="275" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="24" fill="#00d4ff" opacity="0.9" letter-spacing="2" filter="url(#textGlow)">Compile AI Reasoning Into Deterministic Logic</text>
+
+  <!-- ==================== 3-NODE PIPELINE ==================== -->
+
+  <!-- === Node 1: LLM (Compile Time) === -->
+  <g transform="translate(340, 520)">
+    <!-- Outer ring -->
+    <circle cx="0" cy="0" r="110" fill="none" stroke="#ff9f43" stroke-width="2.5" opacity="0.7" filter="url(#glowAmber)"/>
+    <circle cx="0" cy="0" r="100" fill="#0d1f35" stroke="#ff9f43" stroke-width="0.8" opacity="0.3"/>
+    <!-- Brain icon -->
+    <g transform="translate(-30,-35) scale(1.2)" fill="none" stroke="#ff9f43" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 4 C8 4 5 7 5 11 C3 11 1 13.5 1 16 C1 19 3 21 5.5 21 L12 21"/>
+      <path d="M38 4 C42 4 45 7 45 11 C47 11 49 13.5 49 16 C49 19 47 21 44.5 21 L38 21"/>
+      <path d="M12 4 C12 4 16 2 25 2 C34 2 38 4 38 4"/>
+      <path d="M12 21 C12 21 16 23 25 23 C34 23 38 21 38 21"/>
+      <path d="M5 11 C8 11 10 13 10 16"/>
+      <path d="M45 11 C42 11 40 13 40 16"/>
+      <path d="M15 7 C18 9 18 14 15 17"/>
+      <path d="M35 7 C32 9 32 14 35 17"/>
+      <path d="M25 2 L25 23"/>
+      <circle cx="19" cy="10" r="1.5" fill="#ff9f43"/>
+      <circle cx="31" cy="10" r="1.5" fill="#ff9f43"/>
+      <circle cx="25" cy="12" r="1.5" fill="#ff9f43"/>
+    </g>
+    <!-- Label -->
+    <text x="0" y="55" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" font-size="26" fill="#ff9f43">LLM</text>
+    <text x="0" y="80" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="15" fill="#ff9f43" opacity="0.7">Think Once</text>
+    <!-- Phase label -->
+    <text x="0" y="145" text-anchor="middle" font-family="'Consolas','Courier New',monospace" font-size="13" fill="#ff9f43" opacity="0.5" letter-spacing="2">COMPILE TIME</text>
+  </g>
+
+  <!-- === Connector 1: LLM -> DSC === -->
+  <g>
+    <!-- Main arrow line -->
+    <line x1="470" y1="520" x2="730" y2="520" stroke="#00d4ff" stroke-width="3" marker-end="url(#arrowCyan)" opacity="0.7"/>
+    <!-- Dashed orbit lines for visual flair -->
+    <line x1="490" y1="500" x2="710" y2="500" stroke="#00d4ff" stroke-width="0.8" opacity="0.2" stroke-dasharray="6,6"/>
+    <line x1="490" y1="540" x2="710" y2="540" stroke="#00d4ff" stroke-width="0.8" opacity="0.2" stroke-dasharray="6,6"/>
+    <!-- Label -->
+    <text x="600" y="495" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="14" fill="#00d4ff" opacity="0.6">extract + compile</text>
+  </g>
+
+  <!-- === Node 2: DSC Compiler (center, hero) === -->
+  <g transform="translate(960, 520)">
+    <!-- Hexagonal shape using a rounded rect with thick border -->
+    <rect x="-210" y="-120" width="420" height="240" rx="16" fill="#0a1e36" stroke="#00d4ff" stroke-width="3" filter="url(#glowCyan)"/>
+    <rect x="-200" y="-110" width="400" height="220" rx="12" fill="none" stroke="#00d4ff" stroke-width="0.5" opacity="0.3"/>
+    <!-- Gear icon -->
+    <g transform="translate(-35,-55) scale(1.4)" fill="none" stroke="#00d4ff" stroke-width="2.5">
+      <circle cx="25" cy="25" r="10"/>
+      <circle cx="25" cy="25" r="4" fill="#00d4ff" opacity="0.3"/>
+      <path d="M25 3 L25 0 M25 50 L25 47 M3 25 L0 25 M50 25 L47 25 M10 10 L7.5 7.5 M42.5 42.5 L40 40 M42.5 10 L40 7.5 M10 42.5 L7.5 40"/>
+    </g>
+    <!-- Label -->
+    <text x="0" y="40" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" font-size="32" fill="#00d4ff" filter="url(#textGlow)">DSC</text>
+    <text x="0" y="72" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="16" fill="#ffffff" opacity="0.7">Decision Structure Compiler</text>
+    <!-- Blueprint tag -->
+    <text x="0" y="145" text-anchor="middle" font-family="'Consolas','Courier New',monospace" font-size="13" fill="#00d4ff" opacity="0.5" letter-spacing="2">THE COMPILER</text>
+  </g>
+
+  <!-- === Connector 2: DSC -> Runtime === -->
+  <g>
+    <line x1="1190" y1="520" x2="1450" y2="520" stroke="#00d4ff" stroke-width="3" marker-end="url(#arrowCyan)" opacity="0.7"/>
+    <line x1="1210" y1="500" x2="1430" y2="500" stroke="#00d4ff" stroke-width="0.8" opacity="0.2" stroke-dasharray="6,6"/>
+    <line x1="1210" y1="540" x2="1430" y2="540" stroke="#00d4ff" stroke-width="0.8" opacity="0.2" stroke-dasharray="6,6"/>
+    <text x="1320" y="495" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="14" fill="#00d4ff" opacity="0.6">deploy artifact</text>
+  </g>
+
+  <!-- === Node 3: Deterministic Runtime === -->
+  <g transform="translate(1580, 520)">
+    <circle cx="0" cy="0" r="110" fill="none" stroke="#00e676" stroke-width="2.5" opacity="0.7" filter="url(#glowGreen)"/>
+    <circle cx="0" cy="0" r="100" fill="#0d1f35" stroke="#00e676" stroke-width="0.8" opacity="0.3"/>
+    <!-- Checkmark icon -->
+    <g transform="translate(-30,-30) scale(2.4)" fill="none" stroke="#00e676" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="4,13 10,19 22,7"/>
+    </g>
+    <text x="0" y="55" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" font-size="24" fill="#00e676">Deterministic</text>
+    <text x="0" y="80" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="15" fill="#00e676" opacity="0.7">Run Forever</text>
+    <text x="0" y="145" text-anchor="middle" font-family="'Consolas','Courier New',monospace" font-size="13" fill="#00e676" opacity="0.5" letter-spacing="2">RUNTIME</text>
+  </g>
+
+  <!-- ==================== VALUE PROPS (3 badges) ==================== -->
+  <g transform="translate(960, 810)">
+
+    <!-- Badge 1: Zero API Calls -->
+    <g transform="translate(-440, 0)">
+      <rect x="-160" y="-50" width="320" height="100" rx="10" fill="#0d1f35" stroke="#00e676" stroke-width="1.5" opacity="0.9"/>
+      <text x="0" y="-8" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" font-size="36" fill="#00e676" filter="url(#glowGreen)">Zero API Calls</text>
+      <text x="0" y="28" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="16" fill="#8899aa">No tokens, no latency, no cost at runtime</text>
+    </g>
+
+    <!-- Badge 2: 100% Deterministic -->
+    <g transform="translate(0, 0)">
+      <rect x="-160" y="-50" width="320" height="100" rx="10" fill="#0d1f35" stroke="#00d4ff" stroke-width="1.5" opacity="0.9"/>
+      <text x="0" y="-8" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" font-size="36" fill="#00d4ff" filter="url(#glowCyan)">100% Deterministic</text>
+      <text x="0" y="28" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="16" fill="#8899aa">Same input, same output, every time</text>
+    </g>
+
+    <!-- Badge 3: Fully Inspectable -->
+    <g transform="translate(440, 0)">
+      <rect x="-160" y="-50" width="320" height="100" rx="10" fill="#0d1f35" stroke="#ff9f43" stroke-width="1.5" opacity="0.9"/>
+      <text x="0" y="-8" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" font-size="36" fill="#ff9f43" filter="url(#glowAmber)">Fully Inspectable</text>
+      <text x="0" y="28" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="16" fill="#8899aa">Version, audit, and govern every decision</text>
+    </g>
+
+  </g>
+
+  <!-- ==================== BOTTOM TAGLINE ==================== -->
+  <text x="960" y="960" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="20" fill="#ffffff" opacity="0.5" letter-spacing="3">Use the LLM once at design time. Run deterministic decisions forever.</text>
+
+  <!-- Tech footer -->
+  <text x="960" y="1005" text-anchor="middle" font-family="'Consolas','Courier New',monospace" font-size="12" fill="#334455" letter-spacing="2">Python  ·  Pydantic  ·  Claude API  ·  Typer CLI</text>
+
+  <!-- Blueprint drawing number -->
+  <text x="1860" y="1050" text-anchor="end" font-family="'Consolas','Courier New',monospace" font-size="9" fill="#1e3a5f" opacity="0.6">DSC-001 REV.B</text>
+  <text x="60" y="1050" text-anchor="start" font-family="'Consolas','Courier New',monospace" font-size="9" fill="#1e3a5f" opacity="0.6">DECISION STRUCTURE COMPILER</text>
+
+</svg>
