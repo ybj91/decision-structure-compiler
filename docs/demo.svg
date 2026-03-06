@@ -1,0 +1,229 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 500" width="720" height="500">
+  <!-- Terminal background -->
+  <rect width="720" height="500" rx="10" fill="#0d1117"/>
+  <!-- Title bar -->
+  <rect width="720" height="30" rx="10" fill="#161b22"/>
+  <rect y="20" width="720" height="10" fill="#161b22"/>
+  <circle cx="16" cy="15" r="5" fill="#ff5f57"/>
+  <circle cx="34" cy="15" r="5" fill="#febc2e"/>
+  <circle cx="52" cy="15" r="5" fill="#28c840"/>
+  <text x="360" y="19" text-anchor="middle" font-family="'Consolas','Courier New',monospace" font-size="11" fill="#6a737d">Terminal — DSC Full Pipeline Demo</text>
+
+  <!-- All lines start hidden, each revealed by <set> at a specific time -->
+  <g font-family="'Consolas','Courier New',monospace" font-size="12">
+
+    <!-- t=0s: command -->
+    <g opacity="0"><set attributeName="opacity" to="1" begin="0.5s" fill="freeze"/>
+      <text x="14" y="52" fill="#7ee787" font-weight="bold">$ python examples/full_pipeline/demo.py</text>
+    </g>
+
+    <!-- t=1.2s: header -->
+    <g opacity="0"><set attributeName="opacity" to="1" begin="1.2s" fill="freeze"/>
+      <text x="14" y="72" fill="#6a737d">═══════════════════════════════════════════════════</text>
+    </g>
+    <g opacity="0"><set attributeName="opacity" to="1" begin="1.3s" fill="freeze"/>
+      <text x="14" y="88" fill="#c9d1d9" font-weight="bold">  DECISION STRUCTURE COMPILER — Full Pipeline Demo</text>
+    </g>
+    <g opacity="0"><set attributeName="opacity" to="1" begin="1.4s" fill="freeze"/>
+      <text x="14" y="104" fill="#6a737d">═══════════════════════════════════════════════════</text>
+    </g>
+
+    <!-- t=2s: Step 2 -->
+    <g opacity="0"><set attributeName="opacity" to="1" begin="2.2s" fill="freeze"/>
+      <text x="14" y="126" fill="#58a6ff" font-weight="bold">--- STEP 2: LLM simulates execution traces ---</text>
+    </g>
+
+    <!-- Trace 1 -->
+    <g opacity="0"><set attributeName="opacity" to="1" begin="2.8s" fill="freeze"/>
+      <text x="14" y="148" fill="#ff9f43">  Trace 1: account (low) → 2 steps</text>
+    </g>
+    <g opacity="0"><set attributeName="opacity" to="1" begin="3.1s" fill="freeze"/>
+      <text x="14" y="164" fill="#484f58">    triage → [password_reset] → awaiting_confirmation</text>
+    </g>
+    <g opacity="0"><set attributeName="opacity" to="1" begin="3.4s" fill="freeze"/>
+      <text x="14" y="180" fill="#484f58">    awaiting_confirmation → [close_ticket] → resolved</text>
+    </g>
+
+    <!-- Trace 2 -->
+    <g opacity="0"><set attributeName="opacity" to="1" begin="3.9s" fill="freeze"/>
+      <text x="14" y="200" fill="#ff9f43">  Trace 2: billing (medium) → 3 steps</text>
+    </g>
+    <g opacity="0"><set attributeName="opacity" to="1" begin="4.2s" fill="freeze"/>
+      <text x="14" y="216" fill="#484f58">    triage → [lookup_billing] → billing_review</text>
+    </g>
+    <g opacity="0"><set attributeName="opacity" to="1" begin="4.4s" fill="freeze"/>
+      <text x="14" y="232" fill="#484f58">    billing_review → [process_refund] → refund_issued</text>
+    </g>
+    <g opacity="0"><set attributeName="opacity" to="1" begin="4.6s" fill="freeze"/>
+      <text x="14" y="248" fill="#484f58">    refund_issued → [close_ticket] → resolved</text>
+    </g>
+
+    <!-- Trace 3 -->
+    <g opacity="0"><set attributeName="opacity" to="1" begin="5.1s" fill="freeze"/>
+      <text x="14" y="268" fill="#ff9f43">  Trace 3: technical (critical) → 3 steps</text>
+    </g>
+    <g opacity="0"><set attributeName="opacity" to="1" begin="5.4s" fill="freeze"/>
+      <text x="14" y="284" fill="#484f58">    triage → [check_status] → incident_detected</text>
+    </g>
+    <g opacity="0"><set attributeName="opacity" to="1" begin="5.6s" fill="freeze"/>
+      <text x="14" y="300" fill="#484f58">    incident_detected → [notify_incident] → monitoring</text>
+    </g>
+    <g opacity="0"><set attributeName="opacity" to="1" begin="5.8s" fill="freeze"/>
+      <text x="14" y="316" fill="#484f58">    monitoring → [close_ticket] → resolved</text>
+    </g>
+
+    <!-- Step 4: Extract -->
+    <g opacity="0"><set attributeName="opacity" to="1" begin="6.6s" fill="freeze"/>
+      <text x="14" y="340" fill="#58a6ff" font-weight="bold">--- STEP 4: LLM extracts decision graph ---</text>
+    </g>
+    <g opacity="0"><set attributeName="opacity" to="1" begin="7.0s" fill="freeze"/>
+      <text x="14" y="356" fill="#6a737d">  Phase A — Raw extraction:          8 LLM calls</text>
+    </g>
+    <g opacity="0"><set attributeName="opacity" to="1" begin="7.3s" fill="freeze"/>
+      <text x="14" y="372" fill="#6a737d">  Phase B — State normalization:     7 states</text>
+    </g>
+    <g opacity="0"><set attributeName="opacity" to="1" begin="7.6s" fill="freeze"/>
+      <text x="14" y="388" fill="#6a737d">  Phase C — Condition formalization: 15 transitions</text>
+    </g>
+
+    <!-- Step 7: Runtime header -->
+    <g opacity="0"><set attributeName="opacity" to="1" begin="8.4s" fill="freeze"/>
+      <text x="14" y="412" fill="#7ee787" font-weight="bold">--- STEP 7: Runtime (NO LLM CALLS) ---</text>
+    </g>
+
+    <!-- Scrolling transition: at ~9s the top content scrolls up to make room -->
+  </g>
+
+  <!-- PHASE 2: scrolls up, showing runtime tests -->
+  <!-- We overlay a new "screen" that fades in, simulating scroll -->
+  <g opacity="0">
+    <set attributeName="opacity" to="1" begin="9.4s" fill="freeze"/>
+    <rect width="720" height="500" rx="10" fill="#0d1117"/>
+    <rect width="720" height="30" rx="10" fill="#161b22"/>
+    <rect y="20" width="720" height="10" fill="#161b22"/>
+    <circle cx="16" cy="15" r="5" fill="#ff5f57"/>
+    <circle cx="34" cy="15" r="5" fill="#febc2e"/>
+    <circle cx="52" cy="15" r="5" fill="#28c840"/>
+    <text x="360" y="19" text-anchor="middle" font-family="'Consolas','Courier New',monospace" font-size="11" fill="#6a737d">Terminal — DSC Full Pipeline Demo</text>
+
+    <g font-family="'Consolas','Courier New',monospace" font-size="12">
+      <!-- Context line at top -->
+      <text x="14" y="52" fill="#7ee787" font-weight="bold">--- STEP 7: Runtime (NO LLM CALLS) ---</text>
+
+      <!-- Test 1: Password Reset -->
+      <g opacity="0"><set attributeName="opacity" to="1" begin="9.6s" fill="freeze"/>
+        <text x="14" y="76" fill="#c9d1d9" font-weight="bold">  PASSWORD RESET</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="10.0s" fill="freeze"/>
+        <text x="14" y="92" fill="#484f58">    [triage] + {issue_type=account}</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="10.4s" fill="freeze"/>
+        <text x="14" y="108" fill="#7ee787">      → password_reset → [awaiting_confirmation]</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="10.8s" fill="freeze"/>
+        <text x="14" y="124" fill="#484f58">    [awaiting_confirmation] + {reset_completed=True}</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="11.2s" fill="freeze"/>
+        <text x="14" y="140" fill="#7ee787">      → close_ticket → [resolved]</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="11.6s" fill="freeze"/>
+        <text x="14" y="156" fill="#7ee787" font-weight="bold">    Result: RESOLVED in 2 steps</text>
+      </g>
+
+      <!-- Test 2: Billing Refund -->
+      <g opacity="0"><set attributeName="opacity" to="1" begin="12.4s" fill="freeze"/>
+        <text x="14" y="180" fill="#c9d1d9" font-weight="bold">  BILLING REFUND — under $100</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="12.8s" fill="freeze"/>
+        <text x="14" y="196" fill="#484f58">    [triage] + {issue_type=billing}</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="13.1s" fill="freeze"/>
+        <text x="14" y="212" fill="#7ee787">      → lookup_billing → [billing_review]</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="13.4s" fill="freeze"/>
+        <text x="14" y="228" fill="#484f58">    [billing_review] + {duplicate=True, amount=29.99}</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="13.7s" fill="freeze"/>
+        <text x="14" y="244" fill="#7ee787">      → process_refund → [refund_issued]</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="14.0s" fill="freeze"/>
+        <text x="14" y="260" fill="#484f58">    [refund_issued] + {satisfied=True}</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="14.3s" fill="freeze"/>
+        <text x="14" y="276" fill="#7ee787">      → close_ticket → [resolved]</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="14.6s" fill="freeze"/>
+        <text x="14" y="292" fill="#7ee787" font-weight="bold">    Result: RESOLVED in 3 steps</text>
+      </g>
+
+      <!-- Test 3: Unknown → Fallback -->
+      <g opacity="0"><set attributeName="opacity" to="1" begin="15.4s" fill="freeze"/>
+        <text x="14" y="316" fill="#c9d1d9" font-weight="bold">  UNKNOWN ISSUE — fallback</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="15.8s" fill="freeze"/>
+        <text x="14" y="332" fill="#484f58">    [triage] + {issue_type=shipping}</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="16.2s" fill="freeze"/>
+        <text x="14" y="348" fill="#ff9f43">      → escalate_to_human → [resolved]</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="16.6s" fill="freeze"/>
+        <text x="14" y="364" fill="#ff9f43" font-weight="bold">    Result: RESOLVED in 1 step</text>
+      </g>
+
+      <!-- Summary -->
+      <g opacity="0"><set attributeName="opacity" to="1" begin="17.6s" fill="freeze"/>
+        <text x="14" y="392" fill="#6a737d">═══════════════════════════════════════════════════</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="17.8s" fill="freeze"/>
+        <text x="14" y="408" fill="#c9d1d9" font-weight="bold">  SUMMARY</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="18.0s" fill="freeze"/>
+        <text x="14" y="424" fill="#6a737d">═══════════════════════════════════════════════════</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="18.4s" fill="freeze"/>
+        <text x="14" y="444" fill="#58a6ff">  Compile:  8 LLM calls → 7 states, 15 transitions</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="18.8s" fill="freeze"/>
+        <text x="14" y="460" fill="#7ee787">  Runtime:  5 scenarios, 0 LLM calls, &lt;1ms/step</text>
+      </g>
+      <g opacity="0"><set attributeName="opacity" to="1" begin="19.2s" fill="freeze"/>
+        <text x="14" y="476" fill="#c9d1d9">  Every decision: deterministic + auditable</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Blinking cursor (follows the last visible line) -->
+  <!-- Phase 1 cursor: visible from 0.5s to 9.4s -->
+  <rect x="14" y="56" width="7" height="13" fill="#c9d1d9">
+    <animate attributeName="opacity" values="1;1;0;0" dur="1s" repeatCount="indefinite"/>
+    <set attributeName="y" to="56" begin="0.5s" fill="freeze"/>
+    <set attributeName="y" to="76" begin="1.2s" fill="freeze"/>
+    <set attributeName="y" to="108" begin="1.4s" fill="freeze"/>
+    <set attributeName="y" to="130" begin="2.2s" fill="freeze"/>
+    <set attributeName="y" to="152" begin="2.8s" fill="freeze"/>
+    <set attributeName="y" to="184" begin="3.4s" fill="freeze"/>
+    <set attributeName="y" to="204" begin="3.9s" fill="freeze"/>
+    <set attributeName="y" to="252" begin="4.6s" fill="freeze"/>
+    <set attributeName="y" to="272" begin="5.1s" fill="freeze"/>
+    <set attributeName="y" to="320" begin="5.8s" fill="freeze"/>
+    <set attributeName="y" to="344" begin="6.6s" fill="freeze"/>
+    <set attributeName="y" to="392" begin="7.6s" fill="freeze"/>
+    <set attributeName="y" to="416" begin="8.4s" fill="freeze"/>
+    <!-- Hide when phase 2 starts -->
+    <set attributeName="opacity" to="0" begin="9.4s" fill="freeze"/>
+  </rect>
+
+  <!-- Phase 2 cursor -->
+  <rect x="14" y="60" width="7" height="13" fill="#c9d1d9" opacity="0">
+    <set attributeName="opacity" to="1" begin="9.4s" fill="freeze"/>
+    <animate attributeName="opacity" values="1;1;0;0" dur="1s" begin="9.4s" repeatCount="indefinite"/>
+    <set attributeName="y" to="80" begin="9.6s" fill="freeze"/>
+    <set attributeName="y" to="160" begin="11.6s" fill="freeze"/>
+    <set attributeName="y" to="184" begin="12.4s" fill="freeze"/>
+    <set attributeName="y" to="296" begin="14.6s" fill="freeze"/>
+    <set attributeName="y" to="320" begin="15.4s" fill="freeze"/>
+    <set attributeName="y" to="368" begin="16.6s" fill="freeze"/>
+    <set attributeName="y" to="396" begin="17.6s" fill="freeze"/>
+    <set attributeName="y" to="480" begin="19.2s" fill="freeze"/>
+  </rect>
+</svg>
