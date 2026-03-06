@@ -13,11 +13,8 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-3776ab.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![Tests](https://img.shields.io/badge/tests-158%20passed-brightgreen.svg)](#testing)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
-[![Claude API](https://img.shields.io/badge/Claude_API-Anthropic-cc785c.svg?logo=anthropic&logoColor=white)](https://docs.anthropic.com/)
-[![Pydantic v2](https://img.shields.io/badge/pydantic-v2-e92063.svg?logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
-[![Code style: ruff](https://img.shields.io/badge/code_style-ruff-30173d.svg?logo=ruff&logoColor=white)](https://docs.astral.sh/ruff/)
-[![Zero Runtime LLM](https://img.shields.io/badge/runtime_LLM_calls-0-00e676.svg)](#how-it-works)
-[![LOC](https://img.shields.io/badge/lines_of_code-~3K-informational.svg)](#)
+[![LLM Powered](https://img.shields.io/badge/LLM_Powered-Claude-cc785c.svg?logo=anthropic&logoColor=white)](https://docs.anthropic.com/)
+[![Deterministic](https://img.shields.io/badge/deterministic-100%25-00e676.svg)](#how-it-works)
 
 ---
 
