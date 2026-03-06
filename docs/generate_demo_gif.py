@@ -4,11 +4,11 @@ from PIL import Image, ImageDraw, ImageFont
 import os
 
 # Terminal dimensions
-WIDTH = 860
-LINE_H = 18
-PAD_X = 16
-PAD_TOP = 44
-WINDOW_BAR_H = 36
+WIDTH = 720
+LINE_H = 16
+PAD_X = 14
+PAD_TOP = 38
+WINDOW_BAR_H = 30
 
 # Colors (GitHub dark theme)
 BG = (13, 17, 23)
@@ -24,7 +24,7 @@ YELLOW_DOT = (254, 188, 46)
 GREEN_DOT = (40, 200, 64)
 
 # Try to find a monospace font
-FONT_SIZE = 13
+FONT_SIZE = 12
 FONT = None
 font_paths = [
     "C:/Windows/Fonts/consola.ttf",
@@ -63,74 +63,73 @@ def add(text, color=WHITE, bold=False, delay=1):
 # Build the sequence with delays (in frames, ~100ms each)
 frames_spec = []  # list of (delay_frames,)
 
-frames_spec.append(add("$ python examples/full_pipeline/demo.py", GREEN, bold=True, delay=8))
+frames_spec.append(add("$ python examples/full_pipeline/demo.py", GREEN, bold=True, delay=6))
 frames_spec.append(add("", WHITE, delay=1))
-frames_spec.append(add("══════════════════════════════════════════════════════════", GRAY, delay=1))
+frames_spec.append(add("═══════════════════════════════════════════════════════", GRAY, delay=1))
 frames_spec.append(add("  DECISION STRUCTURE COMPILER — Full Pipeline Demo", WHITE, bold=True, delay=1))
-frames_spec.append(add("══════════════════════════════════════════════════════════", GRAY, delay=6))
+frames_spec.append(add("═══════════════════════════════════════════════════════", GRAY, delay=5))
 
 frames_spec.append(add("", WHITE, delay=1))
-frames_spec.append(add("--- STEP 2: LLM simulates execution traces ---", BLUE, bold=True, delay=6))
+frames_spec.append(add("--- STEP 2: LLM simulates execution traces ---", BLUE, bold=True, delay=5))
 frames_spec.append(add("", WHITE, delay=1))
-frames_spec.append(add("  Trace 1: account (low) → 2 steps", AMBER, delay=3))
-frames_spec.append(add("    triage → [initiate_password_reset] → awaiting_confirmation", DIM, delay=2))
-frames_spec.append(add("    awaiting_confirmation → [close_ticket] → resolved", DIM, delay=4))
+frames_spec.append(add("  Trace 1: account (low) → 2 steps", AMBER, delay=2))
+frames_spec.append(add("    triage → [password_reset] → awaiting_confirmation", DIM, delay=1))
+frames_spec.append(add("    awaiting_confirmation → [close_ticket] → resolved", DIM, delay=3))
 frames_spec.append(add("", WHITE, delay=1))
-frames_spec.append(add("  Trace 2: billing (medium) → 3 steps", AMBER, delay=3))
-frames_spec.append(add("    triage → [lookup_billing_history] → billing_review", DIM, delay=2))
-frames_spec.append(add("    billing_review → [process_refund] → refund_issued", DIM, delay=2))
-frames_spec.append(add("    refund_issued → [close_ticket] → resolved", DIM, delay=4))
+frames_spec.append(add("  Trace 2: billing (medium) → 3 steps", AMBER, delay=2))
+frames_spec.append(add("    triage → [lookup_billing] → billing_review", DIM, delay=1))
+frames_spec.append(add("    billing_review → [process_refund] → refund_issued", DIM, delay=1))
+frames_spec.append(add("    refund_issued → [close_ticket] → resolved", DIM, delay=3))
 frames_spec.append(add("", WHITE, delay=1))
-frames_spec.append(add("  Trace 3: technical (critical) → 3 steps", AMBER, delay=3))
-frames_spec.append(add("    triage → [check_system_status] → incident_detected", DIM, delay=2))
-frames_spec.append(add("    incident_detected → [notify_known_incident] → monitoring", DIM, delay=2))
-frames_spec.append(add("    monitoring → [close_ticket] → resolved", DIM, delay=6))
+frames_spec.append(add("  Trace 3: technical (critical) → 3 steps", AMBER, delay=2))
+frames_spec.append(add("    triage → [check_status] → incident_detected", DIM, delay=1))
+frames_spec.append(add("    incident_detected → [notify_incident] → monitoring", DIM, delay=1))
+frames_spec.append(add("    monitoring → [close_ticket] → resolved", DIM, delay=5))
 
 frames_spec.append(add("", WHITE, delay=1))
-frames_spec.append(add("--- STEP 4: LLM extracts decision graph ---", BLUE, bold=True, delay=4))
-frames_spec.append(add("", WHITE, delay=1))
-frames_spec.append(add("  Phase A — Raw extraction:         8 LLM calls total", GRAY, delay=3))
-frames_spec.append(add("  Phase B — State normalization:    7 canonical states", GRAY, delay=3))
-frames_spec.append(add("  Phase C — Condition formalization: 15 transitions", GRAY, delay=8))
+frames_spec.append(add("--- STEP 4: LLM extracts decision graph ---", BLUE, bold=True, delay=3))
+frames_spec.append(add("  Phase A — Raw extraction:         8 LLM calls", GRAY, delay=2))
+frames_spec.append(add("  Phase B — State normalization:    7 states", GRAY, delay=2))
+frames_spec.append(add("  Phase C — Condition formalization: 15 transitions", GRAY, delay=6))
 
 frames_spec.append(add("", WHITE, delay=1))
-frames_spec.append(add("--- STEP 7: Execute at runtime (NO LLM CALLS) ---", GREEN, bold=True, delay=8))
+frames_spec.append(add("--- STEP 7: Runtime (NO LLM CALLS) ---", GREEN, bold=True, delay=6))
 
 # Test 1
 frames_spec.append(add("", WHITE, delay=1))
-frames_spec.append(add("  PASSWORD RESET — account issue", WHITE, bold=True, delay=3))
-frames_spec.append(add("    [triage] + {issue_type=account, severity=low}", DIM, delay=2))
-frames_spec.append(add("      → initiate_password_reset → [awaiting_confirmation]", GREEN, delay=3))
+frames_spec.append(add("  PASSWORD RESET", WHITE, bold=True, delay=2))
+frames_spec.append(add("    [triage] + {issue_type=account}", DIM, delay=2))
+frames_spec.append(add("      → password_reset → [awaiting_confirmation]", GREEN, delay=2))
 frames_spec.append(add("    [awaiting_confirmation] + {reset_completed=True}", DIM, delay=2))
 frames_spec.append(add("      → close_ticket → [resolved]", GREEN, delay=2))
-frames_spec.append(add("    Result: RESOLVED in 2 steps", GREEN, bold=True, delay=8))
+frames_spec.append(add("    Result: RESOLVED in 2 steps", GREEN, bold=True, delay=6))
 
 # Test 2
 frames_spec.append(add("", WHITE, delay=1))
-frames_spec.append(add("  BILLING REFUND — duplicate charge under $100", WHITE, bold=True, delay=3))
+frames_spec.append(add("  BILLING REFUND — under $100", WHITE, bold=True, delay=2))
 frames_spec.append(add("    [triage] + {issue_type=billing}", DIM, delay=2))
-frames_spec.append(add("      → lookup_billing_history → [billing_review]", GREEN, delay=2))
+frames_spec.append(add("      → lookup_billing → [billing_review]", GREEN, delay=2))
 frames_spec.append(add("    [billing_review] + {duplicate=True, amount=29.99}", DIM, delay=2))
 frames_spec.append(add("      → process_refund → [refund_issued]", GREEN, delay=2))
-frames_spec.append(add("    [refund_issued] + {customer_satisfied=True}", DIM, delay=2))
+frames_spec.append(add("    [refund_issued] + {satisfied=True}", DIM, delay=2))
 frames_spec.append(add("      → close_ticket → [resolved]", GREEN, delay=2))
-frames_spec.append(add("    Result: RESOLVED in 3 steps", GREEN, bold=True, delay=8))
+frames_spec.append(add("    Result: RESOLVED in 3 steps", GREEN, bold=True, delay=6))
 
 # Test 3
 frames_spec.append(add("", WHITE, delay=1))
-frames_spec.append(add("  UNKNOWN ISSUE — falls through to human", WHITE, bold=True, delay=3))
-frames_spec.append(add("    [triage] + {issue_type=shipping, severity=low}", DIM, delay=2))
+frames_spec.append(add("  UNKNOWN ISSUE — fallback", WHITE, bold=True, delay=2))
+frames_spec.append(add("    [triage] + {issue_type=shipping}", DIM, delay=2))
 frames_spec.append(add("      → escalate_to_human → [resolved]", AMBER, delay=2))
-frames_spec.append(add("    Result: RESOLVED in 1 step (fallback)", AMBER, bold=True, delay=10))
+frames_spec.append(add("    Result: RESOLVED in 1 step", AMBER, bold=True, delay=8))
 
 # Summary
 frames_spec.append(add("", WHITE, delay=1))
-frames_spec.append(add("══════════════════════════════════════════════════════════", GRAY, delay=1))
-frames_spec.append(add("  SUMMARY", WHITE, bold=True, delay=3))
-frames_spec.append(add("══════════════════════════════════════════════════════════", GRAY, delay=2))
-frames_spec.append(add("  Compile time:  8 LLM calls → 7 states, 15 transitions", BLUE, delay=4))
-frames_spec.append(add("  Runtime:       5 scenarios, 0 LLM calls, <1ms/step", GREEN, delay=4))
-frames_spec.append(add("  Every decision: deterministic, auditable, traceable", WHITE, delay=20))
+frames_spec.append(add("═══════════════════════════════════════════════════════", GRAY, delay=1))
+frames_spec.append(add("  SUMMARY", WHITE, bold=True, delay=2))
+frames_spec.append(add("═══════════════════════════════════════════════════════", GRAY, delay=1))
+frames_spec.append(add("  Compile:  8 LLM calls → 7 states, 15 transitions", BLUE, delay=3))
+frames_spec.append(add("  Runtime:  5 scenarios, 0 LLM calls, <1ms/step", GREEN, delay=3))
+frames_spec.append(add("  Every decision: deterministic + auditable", WHITE, delay=15))
 
 
 def render_frame(visible_lines, show_cursor=True):
@@ -141,7 +140,7 @@ def render_frame(visible_lines, show_cursor=True):
 
     # But keep a fixed height for consistent GIF
     h = max(h, 580)
-    h = 580  # fixed
+    h = 500  # fixed
 
     # Scroll if too many lines
     max_visible = (h - WINDOW_BAR_H - PAD_TOP - 10) // LINE_H
@@ -154,12 +153,12 @@ def render_frame(visible_lines, show_cursor=True):
     # Title bar
     draw.rectangle([(0, 0), (WIDTH, WINDOW_BAR_H)], fill=BAR_BG)
     # Window dots
-    draw.ellipse([(14, 12), (26, 24)], fill=RED_DOT)
-    draw.ellipse([(34, 12), (46, 24)], fill=YELLOW_DOT)
-    draw.ellipse([(54, 12), (66, 24)], fill=GREEN_DOT)
+    draw.ellipse([(14, 10), (24, 20)], fill=RED_DOT)
+    draw.ellipse([(32, 10), (42, 20)], fill=YELLOW_DOT)
+    draw.ellipse([(50, 10), (60, 20)], fill=GREEN_DOT)
     # Title text
     title = "Terminal — DSC Full Pipeline Demo"
-    draw.text((WIDTH // 2 - len(title) * 3.5, 12), title, fill=GRAY, font=FONT)
+    draw.text((WIDTH // 2 - len(title) * 3.5, 9), title, fill=GRAY, font=FONT)
 
     # Lines
     y = WINDOW_BAR_H + 14
@@ -175,27 +174,45 @@ def render_frame(visible_lines, show_cursor=True):
     return img
 
 
+# Build a fixed palette from the colors we use
+palette_colors = [BG, BAR_BG, WHITE, GREEN, BLUE, AMBER, GRAY, DIM,
+                  RED_DOT, YELLOW_DOT, GREEN_DOT, (0, 0, 0)]
+# Pad palette to 256 entries
+while len(palette_colors) < 256:
+    palette_colors.append((0, 0, 0))
+palette_flat = []
+for r, g, b in palette_colors:
+    palette_flat.extend([r, g, b])
+
+def quantize(img):
+    """Convert RGB frame to palette mode for smaller GIF."""
+    return img.quantize(colors=12, method=Image.Quantize.FASTOCTREE, dither=0)
+
 # Generate frames
 print("Generating frames...")
 gif_frames = []
 durations = []
 
-for i, delay in enumerate(frames_spec):
+# Skip empty-line-only frames to reduce frame count — merge their delay into the next
+i = 0
+while i < len(frames_spec):
+    delay = frames_spec[i]
     visible = lines[:i + 1]
-    img = render_frame(visible, show_cursor=True)
+    img = quantize(render_frame(visible, show_cursor=True))
     gif_frames.append(img)
-    durations.append(delay * 100)  # ms
+    durations.append(delay * 100)
+    i += 1
 
-# Add a few extra frames at the end with cursor blink
-for blink in range(6):
-    img = render_frame(lines, show_cursor=(blink % 2 == 0))
+# Cursor blink at end (fewer blinks)
+for blink in range(4):
+    img = quantize(render_frame(lines, show_cursor=(blink % 2 == 0)))
     gif_frames.append(img)
     durations.append(500)
 
-# Add a long pause then restart
-img = render_frame(lines, show_cursor=False)
+# Long pause then restart
+img = quantize(render_frame(lines, show_cursor=False))
 gif_frames.append(img)
-durations.append(2000)
+durations.append(3000)
 
 # Save GIF
 output = os.path.join(os.path.dirname(__file__), "demo.gif")
