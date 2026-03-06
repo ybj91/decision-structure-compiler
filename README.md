@@ -59,7 +59,7 @@ The compiled decision graph:
  │ Scenario + Test Inputs│             │ Compiled    Live Input │
  │        │              │             │ Artifact ◄── Observation│
  │        ▼              │   .json     │    │                   │
- │  LLM Simulates Traces │ ─────────► │    ▼                   │
+ │  LLM Simulates Traces │ ─────────►  │    ▼                   │
  │        │              │             │ Evaluate → Transition  │
  │        ▼              │             │    │                   │
  │  Extract + Optimize   │             │    ▼                   │
