@@ -431,5 +431,123 @@ def run(
     console.print(f"\n[dim]Total steps: {engine.step_count}[/dim]")
 
 
+# ── Analyze Commands ────────────────────────────────────────
+
+analyze_app = typer.Typer(help="Analyze agent compilability")
+app.add_typer(analyze_app, name="analyze")
+
+
+@analyze_app.command("code")
+def analyze_code(
+    source: Path,
+    model: str = "claude-sonnet-4-20250514",
+    output: Optional[Path] = None,
+) -> None:
+    """Analyze agent source code for compilable decision patterns."""
+    from dsc.analyzer.cost_estimator import estimate_costs
+    from dsc.analyzer.static_analyzer import StaticAnalyzer
+
+    if not source.exists():
+        console.print(f"[red]Path not found:[/red] {source}")
+        raise typer.Exit(1)
+
+    llm = LLMClient(model=model)
+    analyzer = StaticAnalyzer(llm)
+
+    console.print(f"[dim]Analyzing source code at {source}...[/dim]")
+    report = analyzer.analyze(source)
+    report.cost_estimate = estimate_costs(report)
+
+    _print_report(report)
+
+    if output:
+        output.write_text(report.model_dump_json(indent=2), encoding="utf-8")
+        console.print(f"\n[dim]Report saved to {output}[/dim]")
+
+
+@analyze_app.command("logs")
+def analyze_logs(
+    log_path: Path,
+    format: str = "auto",
+    model: str = "claude-sonnet-4-20250514",
+    output: Optional[Path] = None,
+) -> None:
+    """Analyze agent execution logs for compilable decision patterns."""
+    from dsc.analyzer.cost_estimator import estimate_costs
+    from dsc.analyzer.log_analyzer import LogAnalyzer
+
+    if not log_path.exists():
+        console.print(f"[red]Path not found:[/red] {log_path}")
+        raise typer.Exit(1)
+
+    llm = LLMClient(model=model)
+    analyzer = LogAnalyzer(llm)
+
+    console.print(f"[dim]Analyzing logs at {log_path}...[/dim]")
+    report = analyzer.analyze(log_path, format=format)
+    report.cost_estimate = estimate_costs(report)
+
+    _print_report(report)
+
+    if output:
+        output.write_text(report.model_dump_json(indent=2), encoding="utf-8")
+        console.print(f"\n[dim]Report saved to {output}[/dim]")
+
+
+def _print_report(report) -> None:
+    """Pretty-print a compilability report."""
+    from dsc.analyzer.report import Compilability
+
+    # Score bar
+    score_pct = int(report.overall_score * 100)
+    bar_filled = score_pct // 5
+    bar = "[green]" + "█" * bar_filled + "[/green][dim]" + "░" * (20 - bar_filled) + "[/dim]"
+    console.print(f"\n[bold]Compilability Score:[/bold] {bar} {score_pct}%")
+
+    console.print(f"\n  [cyan]Total decision points:[/cyan] {report.total_decision_points}")
+    console.print(f"  [green]Compilable:[/green]           {report.compilable_points}")
+    console.print(f"  [yellow]Partially compilable:[/yellow] {report.partially_compilable_points}")
+    console.print(f"  [red]Not compilable:[/red]       {report.not_compilable_points}")
+
+    if report.decision_points:
+        console.print("\n[bold]Decision Points:[/bold]")
+        table = Table()
+        table.add_column("Name", style="bold")
+        table.add_column("Pattern")
+        table.add_column("Compilability")
+        table.add_column("Reason")
+
+        for dp in report.decision_points:
+            color = {"compilable": "green", "partially_compilable": "yellow", "not_compilable": "red"}
+            style = color.get(dp.compilability.value, "white")
+            table.add_row(dp.name, dp.pattern, f"[{style}]{dp.compilability.value}[/{style}]", dp.reason)
+
+        console.print(table)
+
+    if report.scenarios:
+        console.print(f"\n[bold]Suggested DSC Scenarios ({len(report.scenarios)}):[/bold]")
+        for sc in report.scenarios:
+            console.print(f"\n  [cyan]{sc.name}[/cyan] (confidence: {sc.confidence:.0%})")
+            console.print(f"  {sc.description}")
+            if sc.states:
+                console.print(f"  States:  {', '.join(sc.states)}")
+            if sc.actions:
+                console.print(f"  Actions: {', '.join(sc.actions)}")
+            if sc.observation_fields:
+                console.print(f"  Fields:  {', '.join(sc.observation_fields)}")
+
+    if report.cost_estimate:
+        ce = report.cost_estimate
+        console.print("\n[bold]Cost Estimate:[/bold]")
+        console.print(f"  Current:    ${ce.current_cost_per_1k:.2f} / 1K executions")
+        console.print(f"  Compiled:   ${ce.compiled_cost_per_1k:.2f} / 1K executions")
+        console.print(f"  Savings:    [green]{ce.savings_percent:.0f}%[/green]")
+        console.print(f"  Compile:    ${ce.compile_cost:.4f} (one-time)")
+        console.print(f"  Breakeven:  {ce.breakeven_executions} executions")
+
+    for w in report.warnings:
+        console.print(f"\n  [yellow]Warning:[/yellow] {w}")
+
+
 if __name__ == "__main__":
     app()
