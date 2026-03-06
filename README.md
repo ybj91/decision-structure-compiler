@@ -11,7 +11,7 @@
 *Use the LLM once at design time. Run deterministic decisions forever — zero API calls, zero latency, zero hallucinations.*
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-125%2B%20passed-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-158%20passed-brightgreen.svg)](#testing)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 
 ---
@@ -118,6 +118,26 @@ Four runnable examples — no API key needed:
 | **[Content Moderation](examples/content_moderation/)** | Multi-stage filtering with threshold-based routing |
 | **[Programmatic API](examples/programmatic_api/)** | Build everything from code, no CLI or LLM |
 
+## Already Have an Agent? Analyze It First
+
+Not sure if your agent can be compiled? **Run the analyzer** — it parses your agent's source code and/or execution logs, tells you what's compilable, and generates ready-to-use DSC scenarios:
+
+```bash
+# Analyze source code
+dsc analyze code ./my_agent/ --output report.json
+
+# Analyze execution logs
+dsc analyze logs ./logs/ --output report.json
+
+# Both at once (merged analysis, higher confidence)
+dsc analyze code ./my_agent/ --logs ./logs/ --output report.json
+
+# Create DSC scenarios from the report
+dsc analyze apply report.json my-project-id
+```
+
+The report includes a compilability score, identified decision patterns, suggested scenarios, and a **cost savings estimate** (breakeven point, savings per 1K executions).
+
 ## When To Use DSC
 
 *"If I saw 50 examples of this task, would I start seeing patterns?"* — If yes, DSC can compile those patterns.
@@ -130,6 +150,7 @@ Four runnable examples — no API key needed:
 
 ```
 src/dsc/
+  analyzer/           Compilability analysis (code + logs → report → scenarios)
   models/             Pydantic data models (conditions, scenarios, traces, graphs)
   storage/            JSON filesystem persistence
   scenario_manager/   CRUD + lifecycle enforcement
@@ -160,7 +181,7 @@ src/dsc/
 ## Testing
 
 ```bash
-pytest    # 125+ tests
+pytest    # 158 tests
 ```
 
 ## License

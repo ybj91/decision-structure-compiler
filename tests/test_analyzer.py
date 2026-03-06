@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from dsc.analyzer.bridge import scenario_from_suggestion, scenarios_from_report
 from dsc.analyzer.cost_estimator import estimate_costs
 from dsc.analyzer.log_analyzer import LogAnalyzer, load_logs, summarize_logs
 from dsc.analyzer.report import (
@@ -414,3 +415,173 @@ class TestCostEstimator:
         estimate = estimate_costs(report)
         assert estimate.current_cost_per_1k == 0
         assert estimate.breakeven_executions == 0
+
+
+# ── Report Merging ───────────────────────────────────────────
+
+
+class TestReportMerging:
+    def _make_code_report(self):
+        return CompilabilityReport(
+            source_type="code",
+            overall_score=0.65,
+            total_decision_points=3,
+            compilable_points=2,
+            not_compilable_points=1,
+            decision_points=[
+                DecisionPoint(name="route_by_intent", description="Routes by intent",
+                              compilability=Compilability.COMPILABLE, reason="finite routing", pattern="router"),
+                DecisionPoint(name="refund_threshold", description="Amount check",
+                              compilability=Compilability.COMPILABLE, reason="threshold", pattern="rules"),
+                DecisionPoint(name="generate_response", description="Free-form gen",
+                              compilability=Compilability.NOT_COMPILABLE, reason="open-ended", pattern="generator"),
+            ],
+            scenarios=[
+                SuggestedScenario(name="support_routing", description="Route support tickets",
+                                  states=["triage", "refund_review", "resolved"],
+                                  actions=["auto_approve", "escalate"],
+                                  observation_fields=["intent", "amount"],
+                                  confidence=0.8, source="static_analysis"),
+            ],
+            warnings=["generate_response uses free-form LLM"],
+            raw_analysis={"code_structure": {"files": 1}},
+        )
+
+    def _make_log_report(self):
+        return CompilabilityReport(
+            source_type="logs",
+            overall_score=0.85,
+            total_decision_points=2,
+            compilable_points=2,
+            decision_points=[
+                DecisionPoint(name="route_by_intent", description="Intent routing from logs",
+                              compilability=Compilability.COMPILABLE, reason="consistent in logs", pattern="router"),
+                DecisionPoint(name="billing_lookup", description="Billing check",
+                              compilability=Compilability.COMPILABLE, reason="deterministic", pattern="pipeline"),
+            ],
+            scenarios=[
+                SuggestedScenario(name="support_routing", description="Route support tickets",
+                                  states=["triage", "billing_review", "escalated", "resolved"],
+                                  actions=["lookup_billing", "escalate", "close_ticket"],
+                                  observation_fields=["intent", "customer_id"],
+                                  confidence=0.88, source="log_analysis"),
+            ],
+            raw_analysis={"log_summary": {"entries": 100}},
+        )
+
+    def test_merge_source_type(self):
+        merged = self._make_code_report().merge(self._make_log_report())
+        assert merged.source_type == "both"
+
+    def test_merge_deduplicates_decision_points(self):
+        merged = self._make_code_report().merge(self._make_log_report())
+        names = [dp.name for dp in merged.decision_points]
+        # route_by_intent appears in both, should only appear once
+        assert names.count("route_by_intent") == 1
+        # All unique points present
+        assert "refund_threshold" in names
+        assert "generate_response" in names
+        assert "billing_lookup" in names
+        assert merged.total_decision_points == 4
+
+    def test_merge_combines_scenarios(self):
+        merged = self._make_code_report().merge(self._make_log_report())
+        assert len(merged.scenarios) == 1
+        sc = merged.scenarios[0]
+        assert sc.name == "support_routing"
+        assert sc.source == "code+logs"
+        # States merged from both
+        assert "triage" in sc.states
+        assert "billing_review" in sc.states
+        assert "refund_review" in sc.states
+        # Actions merged
+        assert "auto_approve" in sc.actions
+        assert "lookup_billing" in sc.actions
+        # Fields merged
+        assert "intent" in sc.observation_fields
+        assert "amount" in sc.observation_fields
+        assert "customer_id" in sc.observation_fields
+
+    def test_merge_boosts_confidence(self):
+        merged = self._make_code_report().merge(self._make_log_report())
+        sc = merged.scenarios[0]
+        # Confidence should be boosted above the max of the two (0.88)
+        assert sc.confidence > 0.88
+
+    def test_merge_weighted_score(self):
+        merged = self._make_code_report().merge(self._make_log_report())
+        # Weighted average: (0.65*3 + 0.85*2) / (3+2) = 0.73
+        assert 0.7 < merged.overall_score < 0.8
+
+    def test_merge_combines_warnings(self):
+        merged = self._make_code_report().merge(self._make_log_report())
+        assert any("generate_response" in w for w in merged.warnings)
+
+    def test_merge_combines_raw_analysis(self):
+        merged = self._make_code_report().merge(self._make_log_report())
+        assert "code_structure" in merged.raw_analysis
+        assert "log_summary" in merged.raw_analysis
+
+
+# ── Bridge (SuggestedScenario → DSC Scenario) ────────────────
+
+
+class TestBridge:
+    def test_scenario_from_suggestion(self):
+        suggestion = SuggestedScenario(
+            name="support_routing",
+            description="Route customer support requests",
+            states=["triage", "billing_review", "resolved"],
+            actions=["lookup_billing", "escalate", "close_ticket"],
+            observation_fields=["intent", "amount", "customer_id"],
+            confidence=0.9,
+            source="code+logs",
+        )
+        scenario = scenario_from_suggestion(suggestion, "my-project")
+
+        assert scenario.project_id == "my-project"
+        assert scenario.name == "support_routing"
+        assert "Route customer support" in scenario.context
+        assert "90%" in scenario.context
+        assert len(scenario.observation_schema.fields) == 3
+        assert "intent" in scenario.observation_schema.fields
+        assert len(scenario.actions) == 3
+        assert "lookup_billing" in scenario.actions
+        assert scenario.metadata["confidence"] == 0.9
+
+    def test_scenario_has_deterministic_id(self):
+        suggestion = SuggestedScenario(
+            name="test", description="test",
+            states=[], actions=[], observation_fields=[],
+            confidence=0.5,
+        )
+        s1 = scenario_from_suggestion(suggestion, "p1")
+        s2 = scenario_from_suggestion(suggestion, "p1")
+        assert s1.id == s2.id  # same name -> same id
+
+    def test_scenarios_from_report_filters_by_confidence(self):
+        report = CompilabilityReport(
+            source_type="both",
+            overall_score=0.7,
+            scenarios=[
+                SuggestedScenario(name="high", description="high conf",
+                                  states=["a"], actions=["x"], observation_fields=["f"],
+                                  confidence=0.9),
+                SuggestedScenario(name="low", description="low conf",
+                                  states=["a"], actions=["x"], observation_fields=["f"],
+                                  confidence=0.3),
+                SuggestedScenario(name="mid", description="mid conf",
+                                  states=["a"], actions=["x"], observation_fields=["f"],
+                                  confidence=0.6),
+            ],
+        )
+        scenarios = scenarios_from_report(report, "proj", min_confidence=0.5)
+        names = [s.name for s in scenarios]
+        assert "high" in names
+        assert "mid" in names
+        assert "low" not in names
+
+    def test_scenarios_from_report_empty(self):
+        report = CompilabilityReport(source_type="code", overall_score=0.0)
+        scenarios = scenarios_from_report(report, "proj")
+        assert scenarios == []

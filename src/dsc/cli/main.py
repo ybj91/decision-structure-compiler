@@ -442,8 +442,13 @@ def analyze_code(
     source: Path,
     model: str = "claude-sonnet-4-20250514",
     output: Optional[Path] = None,
+    logs: Optional[Path] = None,
+    log_format: str = "auto",
 ) -> None:
-    """Analyze agent source code for compilable decision patterns."""
+    """Analyze agent source code for compilable decision patterns.
+
+    Use --logs to also analyze execution logs and merge both results.
+    """
     from dsc.analyzer.cost_estimator import estimate_costs
     from dsc.analyzer.static_analyzer import StaticAnalyzer
 
@@ -456,8 +461,21 @@ def analyze_code(
 
     console.print(f"[dim]Analyzing source code at {source}...[/dim]")
     report = analyzer.analyze(source)
-    report.cost_estimate = estimate_costs(report)
 
+    # Optionally merge with log analysis
+    if logs:
+        from dsc.analyzer.log_analyzer import LogAnalyzer
+
+        if not logs.exists():
+            console.print(f"[red]Log path not found:[/red] {logs}")
+            raise typer.Exit(1)
+
+        console.print(f"[dim]Analyzing logs at {logs}...[/dim]")
+        log_analyzer = LogAnalyzer(llm)
+        log_report = log_analyzer.analyze(logs, format=log_format)
+        report = report.merge(log_report)
+
+    report.cost_estimate = estimate_costs(report)
     _print_report(report)
 
     if output:
@@ -492,6 +510,59 @@ def analyze_logs(
     if output:
         output.write_text(report.model_dump_json(indent=2), encoding="utf-8")
         console.print(f"\n[dim]Report saved to {output}[/dim]")
+
+
+@analyze_app.command("apply")
+def analyze_apply(
+    report_file: Path,
+    project_id: str,
+    min_confidence: float = 0.5,
+) -> None:
+    """Create DSC scenarios from a compilability report.
+
+    Reads a saved report JSON and creates real scenarios in the project,
+    ready for trace simulation and compilation.
+    """
+    from dsc.analyzer.bridge import scenarios_from_report
+    from dsc.analyzer.report import CompilabilityReport as Report
+
+    if not report_file.exists():
+        console.print(f"[red]Report not found:[/red] {report_file}")
+        raise typer.Exit(1)
+
+    report = Report.model_validate_json(report_file.read_text(encoding="utf-8"))
+
+    if not report.scenarios:
+        console.print("[yellow]No scenarios found in the report.[/yellow]")
+        raise typer.Exit(0)
+
+    scenarios = scenarios_from_report(report, project_id, min_confidence)
+
+    if not scenarios:
+        console.print(f"[yellow]No scenarios above {min_confidence:.0%} confidence.[/yellow]")
+        raise typer.Exit(0)
+
+    storage = _get_storage()
+    manager = ScenarioManager(storage)
+
+    # Ensure project exists
+    try:
+        storage.load_project(project_id)
+    except FileNotFoundError:
+        console.print(f"[red]Project not found:[/red] {project_id}")
+        console.print("[dim]Create one first: dsc init \"Project Name\"[/dim]")
+        raise typer.Exit(1)
+
+    for scenario in scenarios:
+        storage.save_scenario(scenario)
+        console.print(
+            f"[green]Created scenario:[/green] {scenario.name} "
+            f"(id: {scenario.id}, {len(scenario.actions)} actions, "
+            f"{len(scenario.observation_schema.fields)} fields)"
+        )
+
+    console.print(f"\n[bold]{len(scenarios)} scenario(s) created.[/bold]")
+    console.print("[dim]Next: dsc trace simulate <project-id> <scenario-id> input.json[/dim]")
 
 
 def _print_report(report) -> None:
