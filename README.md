@@ -16,40 +16,6 @@
 
 ---
 
-</div>
-
-## The Problem
-
-Every AI-powered workflow today calls an LLM on **every single execution**. Every customer support ticket, every content moderation decision, every approval routing — each one burns tokens, adds latency, and introduces unpredictability.
-
-But here's the insight: in most business domains, **the same types of inputs lead to the same types of decisions**. The decision logic is finite and stable. You don't need a genius to answer the same question for the 10,000th time — you need a state machine.
-
-## The Solution
-
-DSC flips the model: **the LLM thinks once, the state machine runs forever.**
-
-```
-┌─────────────────────────────────┐        ┌──────────────────────────────┐
-│        COMPILE TIME             │        │          RUNTIME             │
-│        (LLM-powered)            │        │        (Zero LLM)            │
-│                                 │        │                              │
-│  Scenarios + Test Inputs        │        │   Compiled        Live       │
-│         │                       │        │   Artifact ◄── Observation   │
-│         ▼                       │        │      │                       │
-│   LLM Simulates Traces         │        │      ▼                       │
-│         │                       │        │   Evaluate Conditions        │
-│         ▼                       │        │      │                       │
-│   Extract Decision Graph        │ ─────► │      ▼                       │
-│         │                       │  .json │   Match Transition           │
-│         ▼                       │        │      │                       │
-│   Optimize + Compile            │        │      ▼                       │
-│                                 │        │   Execute Action             │
-└─────────────────────────────────┘        └──────────────────────────────┘
-     Pay once                                   Run free forever
-```
-
-<div align="center">
-
 | | LLM at Runtime | DSC (Compiled) |
 |:---|:---:|:---:|
 | **Cost per decision** | ~$0.01–0.10 | **$0** |
@@ -60,45 +26,55 @@ DSC flips the model: **the LLM thinks once, the state machine runs forever.**
 
 </div>
 
-## Quick Start
+## Why?
+
+Every AI workflow today calls an LLM on **every single execution**. But in most business domains — support routing, content moderation, approvals — the decision logic is **finite and stable**. You don't need a genius to answer the same question for the 10,000th time. You need a state machine.
+
+DSC flips the model: **the LLM thinks once, the state machine runs forever.**
+
+## Demo
 
 ```bash
 pip install -e ".[dev]"
+python examples/full_pipeline/demo.py    # no API key needed
 ```
 
-### 60-Second Demo
-
-```bash
-# Run the full pipeline example (no API key needed — uses mocked LLM)
-python examples/full_pipeline/demo.py
-```
-
-This walks through the entire workflow: define a scenario → LLM simulates traces → extract decision graph → optimize → compile → run deterministically. **8 LLM calls at compile time → 7-state, 15-transition graph that handles 5 runtime scenarios with zero AI.**
+**8 LLM calls at compile time → 7-state graph → 5 runtime scenarios with zero AI:**
 
 <div align="center">
 <img src="docs/demo.svg" alt="DSC Full Pipeline Demo" width="100%"/>
 </div>
 
-Here's the compiled decision graph that DSC produces — 7 states, 15 transitions, fully deterministic:
+The compiled decision graph:
 
 <div align="center">
 <img src="docs/demo-graph.svg" alt="Compiled Decision Graph" width="100%"/>
 </div>
 
-### CLI Workflow
+## How It Works
 
-```bash
-dsc init "My Project"                                          # 1. Create project
-dsc scenario create <project-id> "Support Bot" \               # 2. Define scenario
-    --context "Handle customer support"
-dsc trace simulate <project-id> <scenario-id> input.json       # 3. Simulate traces
-dsc extract <project-id> <scenario-id>                         # 4. Extract graph
-dsc optimize <project-id> <scenario-id>                        # 5. Optimize
-dsc compile <project-id> <scenario-id>                         # 6. Compile artifact
-dsc run .dsc_data/.../compiled/v1.json                         # 7. Run forever
+```
+ COMPILE TIME (LLM)                    RUNTIME (Zero LLM)
+ ┌───────────────────────┐             ┌────────────────────────┐
+ │ Scenario + Test Inputs│             │ Compiled    Live Input │
+ │        │              │             │ Artifact ◄── Observation│
+ │        ▼              │   .json     │    │                   │
+ │  LLM Simulates Traces │ ─────────► │    ▼                   │
+ │        │              │             │ Evaluate → Transition  │
+ │        ▼              │             │    │                   │
+ │  Extract + Optimize   │             │    ▼                   │
+ │        │              │             │ Execute Action         │
+ │        ▼              │             │                        │
+ │  Compile Artifact     │             │ Deterministic. Always. │
+ └───────────────────────┘             └────────────────────────┘
+      Pay once                              Run free forever
 ```
 
-### Python API
+The formal model: **`(State + Condition) → (Action, Next State)`**
+
+> Conditions aren't strings or prompts — they're a structured AST that evaluates to boolean with zero ambiguity.
+
+## Quick Start
 
 ```python
 from dsc.compiler.compiler import CompiledArtifact
@@ -115,52 +91,42 @@ result = engine.step({"intent": "refund", "order_age_days": 5, "amount": 45.00})
 # Deterministic. Every time. Forever.
 ```
 
-## How It Works
+<details>
+<summary><b>CLI Workflow</b></summary>
 
-### Phase 1: Compile Time (LLM-Powered)
-
-**Define** a scenario with context, observation schema, actions, tools, and constraints. **Simulate** traces by feeding test inputs to the LLM. **Extract** a decision graph through a 3-phase pipeline:
-
-| Phase | What happens | Example |
-|:---|:---|:---|
-| **A. Extract** | Pull raw transitions from each trace | `triage → billing_review` when issue is billing |
-| **B. Normalize** | Deduplicate states across traces | `"intake"` and `"initial_assessment"` → `"triage"` |
-| **C. Formalize** | Convert reasoning to structured conditions | `"amount under $100"` → `refund_amount lte 100` |
-
-**Optimize** the graph (prune unreachable states, merge duplicates, detect conflicts). **Compile** into a versioned, self-contained JSON artifact.
-
-### Phase 2: Runtime (Zero LLM)
-
-Load the artifact. Evaluate structured conditions against live observations. Execute transitions deterministically. **No API calls. No tokens. No network. No surprises.**
-
-The formal model at the core:
-
-```
-(Current State + Condition) → (Action, Next State)
+```bash
+dsc init "My Project"                                          # 1. Create project
+dsc scenario create <project-id> "Support Bot" \               # 2. Define scenario
+    --context "Handle customer support"
+dsc trace simulate <project-id> <scenario-id> input.json       # 3. Simulate traces
+dsc extract <project-id> <scenario-id>                         # 4. Extract graph
+dsc optimize <project-id> <scenario-id>                        # 5. Optimize
+dsc compile <project-id> <scenario-id>                         # 6. Compile artifact
+dsc run .dsc_data/.../compiled/v1.json                         # 7. Run forever
 ```
 
-Conditions aren't strings or prompts — they're a structured AST (`FieldCondition`, `ConditionGroup`, `AlwaysTrue`) that evaluates to boolean with zero ambiguity. 10 operators, arbitrary nesting, dot-path field access.
+</details>
 
 ## Examples
 
 Four runnable examples — no API key needed:
 
-| Example | What it shows | Run it |
-|:---|:---|:---|
-| **[Full Pipeline](examples/full_pipeline/)** | Complete workflow: scenario → LLM → graph → runtime | `python examples/full_pipeline/demo.py` |
-| **[Customer Support](examples/customer_support/)** | Intent routing, VIP overrides, compound conditions | `python examples/customer_support/demo.py` |
-| **[Content Moderation](examples/content_moderation/)** | Multi-stage filtering with threshold-based routing | `python examples/content_moderation/demo.py` |
-| **[Programmatic API](examples/programmatic_api/)** | Build everything from code, no CLI or LLM | `python examples/programmatic_api/build_and_run.py` |
+| Example | What it shows |
+|:---|:---|
+| **[Full Pipeline](examples/full_pipeline/)** | Complete workflow: scenario → LLM → graph → runtime |
+| **[Customer Support](examples/customer_support/)** | Intent routing, VIP overrides, compound conditions |
+| **[Content Moderation](examples/content_moderation/)** | Multi-stage filtering with threshold-based routing |
+| **[Programmatic API](examples/programmatic_api/)** | Build everything from code, no CLI or LLM |
 
 ## When To Use DSC
 
-**Good fit:** Customer support routing, content moderation, approval workflows, order processing — any domain where the same types of inputs lead to the same types of decisions.
+*"If I saw 50 examples of this task, would I start seeing patterns?"* — If yes, DSC can compile those patterns.
 
-**Not a fit:** Open-ended creative tasks, truly unbounded state spaces, one-off tasks.
+**Good fit:** Customer support routing, content moderation, approval workflows, order processing.
+**Not a fit:** Open-ended creative tasks, unbounded state spaces, one-off tasks.
 
-**The litmus test:** *"If I saw 50 examples of this task, would I start seeing patterns?"* If yes, DSC can compile those patterns.
-
-## Architecture
+<details>
+<summary><b>Architecture</b></summary>
 
 ```
 src/dsc/
@@ -176,14 +142,10 @@ src/dsc/
   cli/                Typer CLI
 ```
 
-## Testing
+</details>
 
-```bash
-pytest              # 125+ tests
-pytest -v           # verbose
-```
-
-## Design Principles
+<details>
+<summary><b>Design Principles</b></summary>
 
 | Principle | Over |
 |:---|:---|
@@ -193,8 +155,22 @@ pytest -v           # verbose
 | Compilation | Repeated Inference |
 | Scenario Isolation | Global Agent |
 
-**This is not an agent framework.** It's a compiler. LLMs think once. State machines run forever.
+</details>
+
+## Testing
+
+```bash
+pytest    # 125+ tests
+```
 
 ## License
 
 MIT
+
+---
+
+<div align="center">
+
+**This is not an agent framework.** It's a compiler. LLMs think once. State machines run forever.
+
+</div>
