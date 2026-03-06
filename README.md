@@ -79,6 +79,12 @@ This walks through the entire workflow: define a scenario → LLM simulates trac
 <img src="docs/demo.svg" alt="DSC Full Pipeline Demo" width="100%"/>
 </div>
 
+Here's the compiled decision graph that DSC produces — 7 states, 15 transitions, fully deterministic:
+
+<div align="center">
+<img src="docs/demo-graph.svg" alt="Compiled Decision Graph" width="100%"/>
+</div>
+
 ### CLI Workflow
 
 ```bash
