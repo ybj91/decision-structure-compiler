@@ -75,10 +75,8 @@ python examples/full_pipeline/demo.py
 
 This walks through the entire workflow: define a scenario → LLM simulates traces → extract decision graph → optimize → compile → run deterministically. **8 LLM calls at compile time → 7-state, 15-transition graph that handles 5 runtime scenarios with zero AI.**
 
-Here's the decision graph that gets compiled from 3 LLM-simulated traces:
-
 <div align="center">
-<img src="docs/demo-graph.svg" alt="Compiled Decision Graph — Tech Support Triage" width="100%"/>
+<img src="docs/demo.gif" alt="DSC Full Pipeline Demo" width="100%"/>
 </div>
 
 ### CLI Workflow
