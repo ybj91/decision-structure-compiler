@@ -42,11 +42,15 @@ DSC flips the model: **the LLM thinks once, the state machine runs forever.**
 pip install -e ".[dev]"
 ```
 
-**Standalone executable** (no Python required):
+**Standalone executable** (distribute to machines without Python):
 
 ```bash
+# Build (requires Python + PyInstaller)
 pip install -e ".[build]"
 python scripts/build.py          # outputs dist/dsc (or dist/dsc.exe)
+
+# Run anywhere — no Python needed
+./dist/dsc --help
 ```
 
 Or download a pre-built binary from [Releases](https://github.com/ybj91/decision-structure-compiler/releases).
