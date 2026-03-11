@@ -34,10 +34,26 @@ Every AI workflow today calls an LLM on **every single execution**. But in most 
 
 DSC flips the model: **the LLM thinks once, the state machine runs forever.**
 
-## Demo
+## Install
+
+**Python package:**
 
 ```bash
 pip install -e ".[dev]"
+```
+
+**Standalone executable** (no Python required):
+
+```bash
+pip install -e ".[build]"
+python scripts/build.py          # outputs dist/dsc (or dist/dsc.exe)
+```
+
+Or download a pre-built binary from [Releases](https://github.com/ybj91/decision-structure-compiler/releases).
+
+## Demo
+
+```bash
 python examples/full_pipeline/demo.py    # no API key needed
 ```
 
