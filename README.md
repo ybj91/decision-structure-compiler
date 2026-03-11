@@ -160,6 +160,22 @@ dsc analyze apply report.json my-project-id
 
 The report includes a compilability score, identified decision patterns, suggested scenarios, and a **cost savings estimate** (breakeven point, savings per 1K executions).
 
+## Claude Code Skills
+
+If you use [Claude Code](https://claude.ai/code), DSC ships with three slash commands:
+
+| Skill | What it does |
+|:---|:---|
+| `/dsc-analyze` | Analyze the current codebase for compilable patterns — score, decision points, cost savings |
+| `/dsc-compile` | Full pipeline: init project → apply scenarios → simulate → extract → optimize → compile |
+| `/dsc-run` | Load a compiled artifact, run test inputs, show deterministic execution |
+
+```
+> /dsc-analyze ./my_agent/
+> /dsc-compile
+> /dsc-run
+```
+
 ## When To Use DSC
 
 *"If I saw 50 examples of this task, would I start seeing patterns?"* — If yes, DSC can compile those patterns.
