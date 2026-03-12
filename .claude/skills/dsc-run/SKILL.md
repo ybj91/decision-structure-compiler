@@ -5,41 +5,36 @@ description: Load a compiled DSC artifact and execute it against test inputs to 
 
 # DSC Run
 
-Test a compiled DSC artifact by running it against test inputs. Demonstrates deterministic execution with zero LLM calls.
+Test a compiled DSC artifact by running test inputs through it. Zero LLM calls.
 
-## Steps
+## Step 0: Ensure DSC is available
 
-### 1. Find the compiled artifact
+```bash
+python -c "import dsc" 2>/dev/null || pip install -e ".[dev]" 2>/dev/null || pip install git+https://github.com/ybj91/decision-structure-compiler.git
+```
 
-Look for compiled artifacts in the workspace:
+## Step 1: Find the artifact
+
+If `$ARGUMENTS` is provided, use it as the artifact path. Otherwise search:
 ```bash
 find .dsc_data -name "*.json" -path "*/compiled/*" 2>/dev/null
 ```
-If `$ARGUMENTS` is provided, use it as the artifact path.
+Also check `./compiled/` directory. If nothing found, tell the user to run `/dsc-compile` first.
 
-If no artifact found, tell the user to run `/dsc-compile` first.
+## Step 2: Inspect the artifact
 
-### 2. Inspect the artifact
+Read the compiled JSON artifact. Summarize for the user:
+- States (initial and terminal)
+- Observation fields the conditions check
+- Available actions
 
-Read the compiled artifact to understand:
-- What states exist (especially the initial and terminal states)
-- What observation fields the conditions check
-- What actions are available
+## Step 3: Create and run test inputs
 
-Summarize this for the user in a clear format.
-
-### 3. Create test inputs
-
-Based on the artifact's observation schema, create test JSON inputs that exercise different paths. Cover:
-- **Happy path**: typical input that follows the main flow
-- **Edge case**: boundary values, unusual combinations
-- **Fallback**: input that doesn't match any specific condition (triggers default/escalation)
-
-### 4. Run the artifact
-
-Use the DSC CLI to run interactively, or use Python:
+Based on the artifact's schema, create test inputs covering happy path, edge cases, and fallbacks. Run them using Python directly (no API key needed):
 
 ```python
+import json, sys
+sys.path.insert(0, "src")
 from dsc.compiler.compiler import CompiledArtifact
 from dsc.runtime.engine import RuntimeEngine
 
@@ -47,38 +42,18 @@ artifact = CompiledArtifact.from_json(open("<artifact-path>").read())
 engine = RuntimeEngine.from_artifact(artifact)
 engine.start()
 
-# Step through with each test observation
-result = engine.step({"field": "value", ...})
-print(f"{result.from_state} -> [{result.action}] -> {result.to_state}")
+# Test each observation
+for obs in [<test inputs>]:
+    if engine.is_terminal:
+        break
+    result = engine.step(obs)
+    print(f"  [{result.from_state}] + {obs}")
+    print(f"    → {result.action} → [{result.to_state}]")
+
+print(f"\nReached: {engine.current_state} in {engine.step_count} steps")
+print("LLM calls: 0")
 ```
 
-Or use the CLI:
-```bash
-dsc run <artifact-path>
-```
+## Step 4: Present results
 
-### 5. Present results
-
-For each test input, show:
-- The state transitions taken: `[state] + {observation} → action → [next_state]`
-- Total steps to reach terminal state
-- That **zero LLM calls** were made
-
-Compare different inputs side by side to demonstrate the deterministic behavior — same input always produces the same output.
-
-### 6. Validate
-
-Confirm with the user:
-- Do the transitions make sense for the domain?
-- Are edge cases handled correctly?
-- Should any paths be refined? (If so, suggest re-running `/dsc-compile` with more test traces)
-
-## Arguments
-
-- `$ARGUMENTS` — optional path to compiled artifact JSON. If not provided, search the workspace.
-
-## Notes
-
-- No API key needed — runtime execution is fully deterministic
-- No network calls — the artifact is self-contained
-- Sub-millisecond per step — no latency
+For each test input show the state transitions. Compare different inputs side by side to demonstrate deterministic behavior. Confirm with the user that the transitions make sense.

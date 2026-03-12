@@ -7,41 +7,55 @@ description: Analyze the current codebase or agent code for compilable decision 
 
 Analyze agent code in this workspace to determine what can be compiled into deterministic decision graphs.
 
-## Steps
+## Step 0: Ensure DSC is available
 
-1. **Find agent code**: Look for Python files that contain decision logic — routers, classifiers, if/elif chains, tool dispatch, approval workflows. Use Glob and Grep to find relevant files. Common patterns:
-   - Files with `route`, `handle`, `dispatch`, `classify`, `decide` in function names
-   - Files with `if/elif` chains or `match` statements
-   - Files importing agent frameworks (langchain, crewai, autogen, etc.)
-   - Files with LLM/API calls (`openai`, `anthropic`, `chat`, `complete`)
+Before doing anything else, check if DSC is installed and install it if needed:
 
-2. **Run static analysis**: Execute the DSC analyzer on the discovered code:
-   ```bash
-   dsc analyze code <path-to-agent-code> --output report.json
-   ```
-   If there are also execution logs available (`.jsonl`, `.json` files with agent traces), include them:
-   ```bash
-   dsc analyze code <path-to-agent-code> --logs <path-to-logs> --output report.json
-   ```
+```bash
+python -c "import dsc" 2>/dev/null || pip install -e ".[dev]" 2>/dev/null || pip install git+https://github.com/ybj91/decision-structure-compiler.git
+```
 
-3. **Present the report** clearly to the user:
-   - **Compilability Score**: X% — what fraction of decisions can be compiled
-   - **Decision Points**: table of each identified point, its pattern type (router/classifier/rules/pipeline), and whether it's compilable
-   - **Suggested Scenarios**: the DSC scenarios that could be created, with states, actions, and observation fields
-   - **Cost Estimate**: current cost vs compiled cost per 1K executions, savings %, breakeven point
-   - **Warnings**: anything that can't be compiled and why
+If the workspace IS the DSC repo itself (check for `src/dsc/`), use `pip install -e ".[dev]"`.
+If not, install from GitHub. This is a one-time setup.
 
-4. **Recommend next steps**:
-   - If score > 0.5: recommend running `/dsc-compile` to compile the identified scenarios
-   - If score < 0.5: explain what parts can't be compiled and suggest restructuring
-   - Always mention the cost savings potential
+Verify it works:
+```bash
+dsc --help
+```
 
-## Arguments
+## Step 1: Find agent code
 
-- `$ARGUMENTS` — optional path to analyze. If not provided, analyze the current workspace.
+If `$ARGUMENTS` is provided, use that path. Otherwise, search the workspace for Python files with decision logic:
 
-## Notes
+- Files with `route`, `handle`, `dispatch`, `classify`, `decide` in function names
+- Files with `if/elif` chains or `match` statements
+- Files importing agent frameworks (langchain, crewai, autogen, openclaw, etc.)
+- Files with LLM/API calls (`openai`, `anthropic`, `chat`, `complete`)
 
-- No API key needed for the analysis itself (uses the current Claude session)
-- The analysis uses Python's `ast` module for code parsing — no code is executed
-- Log analysis supports JSONL, JSON array, and directory of log files
+Use Glob and Grep to find these files. Note the paths.
+
+## Step 2: Run analysis
+
+```bash
+dsc analyze code <path-to-agent-code> --output report.json
+```
+
+If execution logs exist (`.jsonl`, `.json` files with agent traces), include them:
+```bash
+dsc analyze code <path-to-agent-code> --logs <path-to-logs> --output report.json
+```
+
+## Step 3: Present the report
+
+Format the results clearly:
+- **Compilability Score**: X% — what fraction of decisions can be compiled
+- **Decision Points**: table of each point, pattern type, and compilability
+- **Suggested Scenarios**: DSC scenarios with states, actions, observation fields
+- **Cost Estimate**: current vs compiled cost, savings %, breakeven
+- **Warnings**: what can't be compiled and why
+
+## Step 4: Recommend next steps
+
+- Score > 50%: recommend `/dsc-compile` to compile the scenarios
+- Score < 50%: explain what can't be compiled, suggest restructuring
+- Always mention the cost savings potential

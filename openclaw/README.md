@@ -26,11 +26,22 @@ After:   Compiled match → Instant ($0, <1ms)
 
 ## Quick Start
 
-### 1. Install DSC
+### 1. One-Command Setup
 
 ```bash
-pip install dsc
+curl -sSL https://raw.githubusercontent.com/ybj91/decision-structure-compiler/main/openclaw/setup.sh | bash
 ```
+
+This installs DSC, downloads the OpenClaw plugin, and creates the `./compiled/` directory. Done in ~30 seconds.
+
+<details>
+<summary>Manual install</summary>
+
+```bash
+pip install git+https://github.com/ybj91/decision-structure-compiler.git
+```
+
+</details>
 
 ### 2. Analyze Your Agent
 

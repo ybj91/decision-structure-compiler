@@ -7,77 +7,62 @@ description: Run the full DSC compilation pipeline — create project, apply ana
 
 Run the full DSC pipeline to compile agent decision logic into a deterministic artifact.
 
-## Steps
+## Step 0: Ensure DSC is available
 
-### 1. Check prerequisites
+```bash
+python -c "import dsc" 2>/dev/null || pip install -e ".[dev]" 2>/dev/null || pip install git+https://github.com/ybj91/decision-structure-compiler.git
+```
+
+Verify: `dsc --help`
+
+## Step 1: Check prerequisites
 
 Look for an existing analysis report:
 ```bash
 ls report.json 2>/dev/null || ls *.report.json 2>/dev/null
 ```
-If no report exists, tell the user to run `/dsc-analyze` first.
+If no report exists, tell the user to run `/dsc-analyze` first and stop.
 
-### 2. Initialize project
+## Step 2: Initialize project and create scenarios
 
 ```bash
-dsc init "Project Name"
+dsc init "Compiled Agent"
 ```
-Note the project ID from the output.
-
-### 3. Create scenarios from analysis
-
+Note the project ID. Then apply the analysis report:
 ```bash
 dsc analyze apply report.json <project-id>
 ```
-This creates DSC scenarios from the analysis report. Note the scenario IDs.
+Note the scenario IDs from the output.
 
-### 4. Simulate traces
+## Step 3: Simulate traces
 
-For each scenario, create test input files and simulate traces. Generate 3-5 diverse test inputs that cover different paths:
+For each scenario, create 3-5 diverse test input JSON files that cover different paths (happy path, edge cases, fallbacks). The inputs should match the scenario's observation schema.
 
+Write each input file, then simulate:
 ```bash
 dsc trace simulate <project-id> <scenario-id> input1.json
 dsc trace simulate <project-id> <scenario-id> input2.json
 dsc trace simulate <project-id> <scenario-id> input3.json
 ```
 
-The test inputs should be JSON files matching the scenario's observation schema. Create inputs that exercise different branches — happy path, edge cases, fallbacks.
+## Step 4: Extract, optimize, compile
 
-### 5. Extract decision graph
-
+For each scenario:
 ```bash
 dsc extract <project-id> <scenario-id>
-```
-This runs the 3-phase LLM pipeline: extract transitions → normalize states → formalize conditions.
-
-### 6. Optimize
-
-```bash
 dsc optimize <project-id> <scenario-id>
-```
-Prunes unreachable states, merges duplicates, detects conflicts.
-
-### 7. Compile artifact
-
-```bash
 dsc compile <project-id> <scenario-id>
 ```
-Outputs a versioned, self-contained JSON artifact.
 
-### 8. Report results
+## Step 5: Report results
 
 Tell the user:
-- How many states and transitions in the compiled graph
-- Where the artifact is saved
-- That they can test it with `/dsc-run`
-
-## Arguments
-
-- `$ARGUMENTS` — optional path to report.json. If not provided, look for report.json in the workspace.
+- States and transitions in the compiled graph
+- Where the artifact is saved (`.dsc_data/projects/<id>/scenarios/<id>/compiled/`)
+- They can test with `/dsc-run`
+- If using OpenClaw, export with `dsc export openclaw <project-id> --output ./compiled/`
 
 ## Notes
 
-- Steps 4-7 require an Anthropic API key (set `ANTHROPIC_API_KEY` environment variable)
-- Steps 4-6 use the LLM — this is the compile-time cost. After this, runtime is free.
-- If any step fails, diagnose the error and suggest fixes before continuing
-- The compiled artifact is at `.dsc_data/projects/<id>/scenarios/<id>/compiled/v<n>.json`
+- Steps 3-4 require `ANTHROPIC_API_KEY` to be set
+- If any step fails, diagnose the error and fix before continuing
