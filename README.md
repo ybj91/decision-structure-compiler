@@ -15,6 +15,8 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 [![LLM Powered](https://img.shields.io/badge/LLM_Powered-Claude-cc785c.svg?logo=anthropic&logoColor=white)](https://docs.anthropic.com/)
 [![Deterministic](https://img.shields.io/badge/deterministic-100%25-00e676.svg)](#how-it-works)
+[![OpenClaw](https://img.shields.io/badge/OpenClaw-Plugin-ff6b6b.svg?logo=lobster&logoColor=white)](openclaw/README.md)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-Skills-8b5cf6.svg?logo=anthropic&logoColor=white)](.claude/skills/)
 
 ---
 
