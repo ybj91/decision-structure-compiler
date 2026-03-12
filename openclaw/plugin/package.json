@@ -1,0 +1,24 @@
+{
+  "name": "@dsc/openclaw-plugin",
+  "version": "0.2.0",
+  "description": "DSC ContextEngine plugin — intercept repetitive decisions and execute them deterministically with zero LLM calls",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "keywords": [
+    "openclaw",
+    "dsc",
+    "decision-compiler",
+    "cost-optimization",
+    "deterministic",
+    "context-engine"
+  ],
+  "author": "ybj91",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.4"
+  }
+}

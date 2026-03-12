@@ -160,6 +160,30 @@ dsc analyze apply report.json my-project-id
 
 The report includes a compilability score, identified decision patterns, suggested scenarios, and a **cost savings estimate** (breakeven point, savings per 1K executions).
 
+## OpenClaw Integration
+
+Running an [OpenClaw](https://github.com/openclaw/openclaw) agent? DSC plugs directly into the **ContextEngine** to intercept repetitive decisions before they hit the LLM:
+
+```
+Incoming Message
+       │
+  ┌────┴────┐
+  │   DSC   │  Compiled match? → Instant reply (<1ms, $0)
+  │ Plugin  │  No match?       → Normal LLM call (500ms, $0.01)
+  └─────────┘
+```
+
+```bash
+# Analyze your OpenClaw agent
+dsc analyze code ./my-openclaw-agent/ --output report.json
+
+# Compile and export for the plugin
+dsc compile <project-id> <scenario-id>
+dsc export openclaw <project-id> --output ./compiled/
+```
+
+The plugin tracks compiled hits vs LLM fallbacks so you can measure real savings. **[Full integration guide →](openclaw/README.md)**
+
 ## Claude Code Skills
 
 If you use [Claude Code](https://claude.ai/code), DSC ships with three slash commands:
@@ -169,12 +193,6 @@ If you use [Claude Code](https://claude.ai/code), DSC ships with three slash com
 | `/dsc-analyze` | Analyze the current codebase for compilable patterns — score, decision points, cost savings |
 | `/dsc-compile` | Full pipeline: init project → apply scenarios → simulate → extract → optimize → compile |
 | `/dsc-run` | Load a compiled artifact, run test inputs, show deterministic execution |
-
-```
-> /dsc-analyze ./my_agent/
-> /dsc-compile
-> /dsc-run
-```
 
 ## When To Use DSC
 

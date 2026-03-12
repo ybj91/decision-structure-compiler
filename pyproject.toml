@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dsc"
-version = "0.1.0"
+version = "0.2.0"
 description = "Decision Structure Compiler — compile LLM reasoning into deterministic decision graphs"
 requires-python = ">=3.11"
 dependencies = [

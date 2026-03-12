@@ -620,5 +620,40 @@ def _print_report(report) -> None:
         console.print(f"\n  [yellow]Warning:[/yellow] {w}")
 
 
+# ── Export Commands ─────────────────────────────────────────
+
+export_app = typer.Typer(help="Export compiled artifacts for external integrations")
+app.add_typer(export_app, name="export")
+
+
+@export_app.command("openclaw")
+def export_openclaw(
+    project_id: str,
+    output: Path = Path("./compiled"),
+) -> None:
+    """Export compiled artifacts for the OpenClaw ContextEngine plugin."""
+    from dsc.analyzer.exporter import export_for_openclaw
+
+    storage = _get_storage()
+
+    try:
+        storage.load_project(project_id)
+    except FileNotFoundError:
+        console.print(f"[red]Project not found:[/red] {project_id}")
+        raise typer.Exit(1)
+
+    exported = export_for_openclaw(storage, project_id, output)
+
+    if not exported:
+        console.print("[yellow]No compiled artifacts found in this project.[/yellow]")
+        console.print("[dim]Run dsc compile first.[/dim]")
+        raise typer.Exit(0)
+
+    console.print(f"[green]Exported {len(exported)} artifact(s) to {output}/[/green]")
+    for p in exported:
+        console.print(f"  {p.name}")
+    console.print(f"\n[dim]Copy {output}/ to your OpenClaw plugin's artifactsDir.[/dim]")
+
+
 if __name__ == "__main__":
     app()

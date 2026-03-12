@@ -1,0 +1,30 @@
+{
+  "name": "dsc-compiler",
+  "version": "0.2.0",
+  "description": "Compile repetitive agent decisions into deterministic graphs. Zero LLM calls for compiled paths.",
+  "entry": "dist/index.js",
+  "type": "context-engine",
+  "skills": ["../skill"],
+  "config": {
+    "artifactsDir": {
+      "type": "string",
+      "default": "./compiled",
+      "description": "Directory containing compiled DSC artifacts"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable/disable compiled path interception"
+    },
+    "fallbackToLLM": {
+      "type": "boolean",
+      "default": true,
+      "description": "Fall through to LLM when no compiled path matches"
+    },
+    "logCompiledHits": {
+      "type": "boolean",
+      "default": true,
+      "description": "Log when compiled paths are used instead of LLM"
+    }
+  }
+}
